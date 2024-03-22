@@ -5,7 +5,9 @@
         <style>
             #text-editor {
                 border: 1px solid black;
-                height: 300px;
+                min-height: 300px;
+                max-height: 600px;
+                overflow-y: auto;
                 padding: 8px 10px;
             }
 
@@ -94,6 +96,9 @@
                 type="button"
             >StrikeThrough
             </button>
+            <!-- 이미지 업로드를 위한 숨겨진 파일 입력 필드 -->
+<input type="file" id="imageUpload" style="display: none;" accept="image/*">
+<button class="btn" id="insertImage" type="button">Insert Image</button>
 
         </div>
         <script src="./src/scriptor.js"></script>

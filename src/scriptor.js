@@ -46,7 +46,7 @@ window.addEventListener('DOMContentLoaded', e => {
       if (!selection.rangeCount) return; // 선택된 텍스트가 없으면 반환
       const range = selection.getRangeAt(0);
       const endPosition = range.endOffset;
-      console.log(`선택 끝 위치: ${endPosition}`);
+      // console.log(`선택 끝 위치: ${endPosition}`);
     
     });
   
@@ -60,7 +60,6 @@ window.addEventListener('DOMContentLoaded', e => {
     /// Get all Text Editor Button Values
 
     const buttons = document.querySelectorAll('[data-scriptor-btn]');
-
     buttons.forEach((button) => button.addEventListener('click', (e) => handleClick(button, form)));
 
     function handleClick( button, form ) {
@@ -72,30 +71,151 @@ window.addEventListener('DOMContentLoaded', e => {
           // 다른 버튼에 대한 기존 처리...
           form.value = getNewValue(button, form.textContent);
       }
-      // form.value = getNewValue( button, form.textContent );
 
     }
 
-    // 선택한 텍스트를 굵게 만드는 함수
     function makeTextBold() {
       const selection = window.getSelection();
       if (!selection.rangeCount) return; // 선택된 텍스트가 없으면 반환
     
-      const range = selection.getRangeAt(0);
-      const selectedText = range.extractContents(); // 선택된 텍스트의 내용을 추출
+      let range = selection.getRangeAt(0);
+      if (range.collapsed) return; // 텍스트가 선택되지 않았으면 반환
+      
     
-      const boldElement = document.createElement('b'); // 굵게 만들기 위한 <b> 요소 생성
-      boldElement.appendChild(selectedText); // <b> 요소 안에 선택된 텍스트를 삽입
+      // 선택된 범위 내의 모든 노드를 순회하면서 <b> 태그를 찾아 처리
+      const containsBold = Array.from(range.cloneContents().childNodes).some(node => {
+        return node.nodeName === 'B' || node.querySelector && node.querySelector('b');
+      });
+
+      console.log( range.cloneContents().childNodes );
     
-      range.insertNode(boldElement); // 원래의 선택 영역에 굵게 처리된 텍스트를 삽입
+      if (containsBold) {
+        // <b> 태그가 포함된 텍스트를 굵게 처리 해제
+        document.execCommand('bold', false, null);
+      } else {
+        // 전체 선택된 텍스트를 굵게 처리
+        document.execCommand('bold', false, null);
+      }
     
-      // 선택을 해제한 후 새로 굵게 처리된 영역을 선택
-      selection.removeAllRanges();
-      const newRange = document.createRange();
-      newRange.selectNodeContents(boldElement);
-      selection.addRange(newRange);
+      // 변경된 범위에 따라 새로운 Range 객체를 생성하고 적용
+      if (selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
     }
 
+    // 이미지 삽입 함수
+    document.getElementById('insertImage').addEventListener('click', function() {
+      document.getElementById('imageUpload').click();
+  });
+  
+  document.getElementById('imageUpload').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              // 이미지 삽입 함수를 호출하여 커서 위치에 이미지를 삽입
+              insertImageAtCursor(e.target.result);
+              document.getElementById('imageUpload').value = '';
+          };
+          reader.readAsDataURL(file);
+      }
+  });
+  
+  function insertImageAtCursor(src) {
+      const imgElement = document.createElement('img');
+      
+      imgElement.src = src;
+      imgElement.alt = 'Inserted Image';
+      imgElement.style.width = '100px';
+      imgElement.style.height = '100px';
+      imgElement.style.cursor = 'pointer';
+  
+      const editor = document.getElementById('text-editor');
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      // const range = document.getSelection().getRangeAt(0);
+      const range = selection.getRangeAt(0);
+      range.deleteContents(); // 선택된 영역의 내용을 지우고
+
+      
+      // range.setStartAfter(imgElement);
+
+
+      // 이미지 크기 조절 핸들 추가
+      const resizeHandle = document.createElement('div');
+      resizeHandle.style.width = '10px';
+      resizeHandle.style.height = '10px';
+      resizeHandle.style.backgroundColor = 'red';
+      resizeHandle.style.position = 'absolute';
+      resizeHandle.style.bottom = '-5px';
+      resizeHandle.style.right = '-5px';
+      resizeHandle.style.cursor = 'nwse-resize';
+      const imgContainer = document.createElement('div');
+      imgContainer.style.position = 'relative';
+      imgContainer.style.display = 'inline-block';
+      imgContainer.style.bolder = '2px solid red';
+      imgContainer.appendChild(imgElement);
+      imgContainer.appendChild(resizeHandle);
+      // editor.appendChild(imgContainer);
+
+      range.insertNode(imgContainer); // 이미지를 삽입합니다.
+
+      // 이미지 크기 조절 이벤트 핸들러
+      resizeHandle.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = parseInt(window.getComputedStyle(imgElement).width, 10);
+        const startHeight = parseInt(window.getComputedStyle(imgElement).height, 10);
+      
+        function resize(e) {
+            const width = startWidth + e.clientX - startX;
+            const height = startHeight + e.clientY - startY;
+            imgElement.style.width = `${width}px`;
+            imgElement.style.height = `${height}px`;
+        }
+      
+        function stopResize() {
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+      
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
+    });
+      
+      // 이미지 드래그 이벤트 설정
+      imgContainer.addEventListener('dragstart', handleDragStart, false);
+      editor.addEventListener('dragover', handleDragOver, false);
+      editor.addEventListener('drop', handleDrop, false);
+  }
+  
+  function handleDragStart(e) {
+      e.dataTransfer.setData('text/plain', null); // Firefox를 위한 해결책
+      e.dataTransfer.setDragImage(this, 0, 0);
+      e.dataTransfer.effectAllowed = 'move';
+      window.draggedElement = this; // 드래그된 이미지를 전역 변수로 설정
+  }
+  
+  function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+  }
+  
+  function handleDrop(e) {
+      e.stopPropagation(); // 이벤트 전파 중지
+      e.preventDefault();
+      
+      const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+      if (range) {
+          range.insertNode(window.draggedElement); // 드래그된 이미지를 새 위치에 삽입
+          const sel = window.getSelection();
+          sel.removeAllRanges(); // 선택 영역 제거
+          sel.addRange(range); // 이미지 뒤에 새 선택 영역 생성
+      }
+  }
   
     function getNewValue( button, text ) {
         // allows custom functions to be called on button clicks.
