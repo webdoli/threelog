@@ -21,7 +21,7 @@
 
             <button 
                 class="btn" 
-                data-scriptor-btn value="#" 
+                data-threelog-btn value="#" 
                 htmltags="false" 
                 wrap="false" 
                 type="button"
@@ -29,7 +29,7 @@
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="##" 
+                data-threelog-btn value="##" 
                 wrap="false" 
                 htmltags="false" 
                 type="button"
@@ -37,7 +37,7 @@
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="###" 
+                data-threelog-btn value="###" 
                 htmltags="false" 
                 wrap="false" 
                 type="button"
@@ -45,7 +45,7 @@
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="b" 
+                data-threelog-btn value="b" 
                 htmltags="True" 
                 wrap="True" 
                 type="button"
@@ -53,21 +53,21 @@
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="i" 
+                data-threelog-btn value="i" 
                 wrap="True" 
                 type="button"
             >Italic
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="details" 
+                data-threelog-btn value="details" 
                 wrap="True" 
                 type="button"
             >Details
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="blockquote" 
+                data-threelog-btn value="blockquote" 
                 wrap="True" 
                 type="button"
             >Block Quotes
@@ -82,7 +82,7 @@
 
             <button 
                 class="btn" 
-                data-scriptor-btn value="@" 
+                data-threelog-btn value="@" 
                 wrap="false" 
                 htmltags="false" 
                 type="button"
@@ -90,17 +90,30 @@
             </button>
             <button 
                 class="btn" 
-                data-scriptor-btn value="~~" 
+                data-threelog-btn value="~~" 
                 wrap="True" 
                 htmltags="false" 
                 type="button"
             >StrikeThrough
             </button>
             <!-- 이미지 업로드를 위한 숨겨진 파일 입력 필드 -->
-<input type="file" id="imageUpload" style="display: none;" accept="image/*">
-<button class="btn" id="insertImage" type="button">Insert Image</button>
+            <input 
+                type="file"
+                id="imageUpload" 
+                style="display: none;" 
+                accept="image/*"
+            >
+            <button 
+                class="btn" 
+                id="insertImage" 
+                type="button"
+                htmlTags="True"
+                data-threelog-btn
+                value="img"
+            >Insert Image
+            </button>
 
         </div>
-        <script src="./src/scriptor.js"></script>
+        <script type="module" src="./src/scriptor.js"></script>
     </body>
 </html>
