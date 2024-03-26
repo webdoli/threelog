@@ -6,6 +6,7 @@
     </head>
     <body>
         <div class="container py-4">
+            <!-- 글씨 제목 선택 드롭다운 -->
             <div class="dropdown">
                 <button 
                     class="btn dropdown-toggle" 
@@ -24,9 +25,33 @@
                     <a class="dropdown-item" href="#" data-threelog-btn value="H2">부 제목</a>
                     <a class="dropdown-item" href="#" data-threelog-btn value="H3">소 제목</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" data-threelog-btn value="P">보통 단락</a>
+                    <a class="dropdown-item" href="#" data-threelog-btn value="span">보통 단락</a>
                 </div>
             </div>
+
+            <!-- 글씨체 선택 드롭다운 -->
+            <div class="dropdown">
+                <button class="btn dropdown-toggle" type="button" id="fontDropdownButton" data-toggle="dropdown">
+                  글씨체
+                </button>
+                <div class="dropdown-menu" aria-labelledby="fontDropdownButton">
+                  <a class="dropdown-item font-option" href="#" data-font="Arial">Arial</a>
+                  <a class="dropdown-item font-option" href="#" data-font="Georgia">Georgia</a>
+                  <a class="dropdown-item font-option" href="#" data-font="Times New Roman">Times New Roman</a>
+                  <a class="dropdown-item font-option" href="#" data-font="Nanum_Gothic">나눔 고딕</a>
+                  <a class="dropdown-item font-option" href="#" data-font="Gowun_Batang">바탕체</a>
+                  <!-- 추가 글씨체 목록 -->
+                  
+                </div>
+            </div>
+
+            <!-- 글씨 크기 선택 입력 필드 -->
+            <div>
+                <label for="fontSizeInput">글씨 크기: </label>
+                <input type="number" id="fontSizeInput" min="1" max="100" value="16"> <!-- 기본값 16 -->
+                <button onclick="setFontSize();">적용</button>
+            </div>
+
             <button id="transBtn">
                 Code
             </button>
@@ -129,6 +154,5 @@
         <div id="html-output" style="white-space:pre-wrap;border:1px solid red; height:200px;"></div>
         <div id="post" contenteditable style="white-space:pre-wrap;border:1px solid black; margin-top:20px; padding:10px;"></div>
         <script type="module" src="./src/scriptor.js"></script>
-        
     </body>
 </html>

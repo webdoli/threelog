@@ -31,3 +31,31 @@ export function creatingTitleTag( selection, range, tagName) {
     selection.removeAllRanges();
 
 }
+
+export function wrapTextWithTag( tagName ) {
+  console.log('제목 태그: ', tagName );
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+
+  const range = selection.getRangeAt(0);
+  const selectedText = selection.toString();
+
+  if ( selectedText ) {
+    // 선택된 텍스트로 새 태그 생성
+    const newElement = document.createElement( tagName );
+    newElement.textContent = selectedText;
+
+    // 선택된 텍스트 삭제 및 새 요소 삽입
+    range.deleteContents();
+    range.insertNode( newElement );
+
+    // 삽입된 새 요소를 포함하는 새로운 Range 객체 생성
+    const newRange = document.createRange();
+    newRange.selectNode( newElement );
+
+    // 기존 선택 제거 후 새 선택 추가
+    selection.removeAllRanges();
+    selection.addRange( newRange );
+
+  }
+}
