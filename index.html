@@ -2,26 +2,37 @@
     <head>
         <title>ThreeLog Text Editor | threelog.js Demo</title>
         <link href="https://unpkg.com/primer@latest/build/build.css" rel="stylesheet" />   
-        <style>
-            #text-editor {
-                border: 1px solid black;
-                min-height: 300px;
-                max-height: 600px;
-                overflow-y: auto;
-                padding: 8px 10px;
-            }
-
-            #text-editor:focus {
-                outline: 0;
-            }
-        </style> 
+        <link rel="stylesheet" href="./src/threelog.css">
     </head>
     <body>
         <div class="container py-4">
-
+            <div class="dropdown">
+                <button 
+                    class="btn dropdown-toggle" 
+                    type="button" 
+                    id="dropdownMenuButton" 
+                    data-toggle="dropdown"
+                    data-threelog-btn
+                    value="P"
+                    aria-haspopup="true" 
+                    aria-expanded="false"
+                >
+                보통
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#" data-threelog-btn value="H1">주 제목</a>
+                    <a class="dropdown-item" href="#" data-threelog-btn value="H2">부 제목</a>
+                    <a class="dropdown-item" href="#" data-threelog-btn value="H3">소 제목</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" data-threelog-btn value="P">보통 단락</a>
+                </div>
+            </div>
+            <button id="transBtn">
+                Code
+            </button>
             <button 
                 class="btn" 
-                data-threelog-btn value="#" 
+                data-threelog-btn value="H1" 
                 htmltags="false" 
                 wrap="false" 
                 type="button"
@@ -29,7 +40,7 @@
             </button>
             <button 
                 class="btn" 
-                data-threelog-btn value="##" 
+                data-threelog-btn value="H2" 
                 wrap="false" 
                 htmltags="false" 
                 type="button"
@@ -37,7 +48,7 @@
             </button>
             <button 
                 class="btn" 
-                data-threelog-btn value="###" 
+                data-threelog-btn value="H3" 
                 htmltags="false" 
                 wrap="false" 
                 type="button"
@@ -73,12 +84,13 @@
             >Block Quotes
             </button>
 
-            <div 
+            <div
                 id="text-editor" 
                 spellcheck="true" 
                 contenteditable="true" 
                 class="mt-3 d-block width-full"
-            ></div>
+            >
+            </div>
 
             <button 
                 class="btn" 
@@ -114,6 +126,9 @@
             </button>
 
         </div>
+        <div id="html-output" style="white-space:pre-wrap;border:1px solid red; height:200px;"></div>
+        <div id="post" contenteditable style="white-space:pre-wrap;border:1px solid black; margin-top:20px; padding:10px;"></div>
         <script type="module" src="./src/scriptor.js"></script>
+        
     </body>
 </html>

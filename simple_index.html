@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom WYSIWYG Editor</title>
+    <style>
+        #editor-toolbar {
+            margin-bottom: 10px;
+        }
+
+        #editor-toolbar button {
+            cursor: pointer;
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+        #text-editor {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 200px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="editor-toolbar">
+        <button type="button" data-command="bold">Bold</button>
+        <button type="button" data-command="italic">Italic</button>
+        <button type="button" data-command="underline">Underline</button>
+    </div>
+    <div id="text-editor" contenteditable="true"></div>
+
+    <script>
+        document.getElementById('editor-toolbar').addEventListener('click', function(event) {
+
+            if (event.target && event.target.nodeName === "BUTTON") {
+                handleCommand(event.target.dataset.command);
+            }
+        });
+
+        function handleCommand(command) {
+            
+            let range, sel;
+            
+            if (window.getSelection) {
+                sel = window.getSelection();
+            
+                if (sel.rangeCount) {
+                    range = sel.getRangeAt(0);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            }
+
+            if (range) {
+                let newNode = document.createElement('span');
+                    
+                switch (command) {
+                    case 'bold':
+                        newNode.style.fontWeight = 'bold';
+                        break;
+                    case 'italic':
+                        newNode.style.fontStyle = 'italic';
+                        break;
+                    case 'underline':
+                        newNode.style.textDecoration = 'underline';
+                        break;
+                    default:
+                    break;
+                }
+    
+                range.surroundContents(newNode);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+
+
+        }
+
+    </script>
+</body>
+</html>
