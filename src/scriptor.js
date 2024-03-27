@@ -92,7 +92,7 @@ window.addEventListener('DOMContentLoaded', e => {
       }
 
       if (buttonValue === 'i' && htmlTags === 'True') {
-        console.log('이텔릭 버튼');
+        
         toggleItalic(); // '이탤릭체' 버튼 클릭 시 함수 호출
         updateHtmlOutput();
       }
