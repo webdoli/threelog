@@ -4,27 +4,30 @@ export const makeTextBold = () => {
     const selection = window.getSelection();
     if ( !selection.rangeCount ) return; // 선택된 텍스트가 없으면 반환
   
-    let range = selection.getRangeAt(0);
-    if ( range.collapsed ) return; // 텍스트가 선택되지 않았으면 반환
-    
-    // 선택된 범위 내의 모든 노드를 순회하면서 <b> 태그를 찾아 처리
-    const containsBold = Array.from( range.cloneContents().childNodes )
-        .some( node => {
-            return node.nodeName === 'B' || node.querySelector && node.querySelector('b');
-        });
+    const range = selection.getRangeAt(0);
+    const selectedText = range.extractContents();
 
-    if ( containsBold ) {
-      // <b> 태그가 포함된 텍스트를 굵게 처리 해제
-      document.execCommand('bold', false, null);
+    // 현재 선택된 텍스트가 <strong> 태그로 이미 감싸져 있는지 확인
+    if ( selectedText.querySelector('strong') ) {
+      // <strong> 태그 내부의 텍스트를 추출하여 원래 위치에 삽입
+      range.insertNode( document.createTextNode(selectedText.querySelector('strong').textContent));
+    
     } else {
-      // 전체 선택된 텍스트를 굵게 처리
-      document.execCommand('bold', false, null);
+      // 선택된 텍스트를 <strong> 태그로 감싸기
+      const strong = document.createElement('strong');
+      strong.appendChild(selectedText);
+      range.insertNode(strong);
     }
-  
-    // 변경된 범위에 따라 새로운 Range 객체를 생성하고 적용
-    if (selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
+
+    // 새로운 선택 범위 생성
+    const newRange = document.createRange();
+
+    // 캐럿을 <strong> 태그 뒤에 위치시키기
+    newRange.setStartAfter(range.endContainer);
+    newRange.setEndAfter(range.endContainer);
+
+    // 변경된 범위로 선택 영역 업데이트
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+
 }

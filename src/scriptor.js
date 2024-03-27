@@ -4,6 +4,7 @@
  * MORE INFO CAN BE FOUND AT https://github.com/MarketingPipeline/Scriptor.js/
  */
 import { makeTextBold } from "./components/button_exec/btn_bold.js"; // 글씨체 굵게 만드는 버튼 모듈
+import { toggleItalic } from "./components/button_exec/btn_italic.js";
 import { makeImgs } from "./components/button_exec/btn_img.js"; // 이미지 업로드 버튼 모듈
 import { wrapTextNodesInPTags, convert_to_P_Tag, encodeHtml } from "./components/hook.js";
 import { wrapTextWithTag } from "./components/button_exec/btn_title.js";
@@ -78,12 +79,23 @@ window.addEventListener('DOMContentLoaded', e => {
 
     function handleClick( button ) {
 
+      
       // 버튼 value값 받기
       const buttonValue = button.getAttribute('value');
       const htmlTags = button.getAttribute('htmltags');
 
       // 버튼의 데이터를 확인하여 'Bold' 기능 실행
-      ( buttonValue === 'b' && htmlTags === 'True' ) ? makeTextBold() : null;
+      if ( buttonValue === 'b' && htmlTags === 'True' ) { 
+        
+        makeTextBold();
+        updateHtmlOutput();
+      }
+
+      if (buttonValue === 'i' && htmlTags === 'True') {
+        console.log('이텔릭 버튼');
+        toggleItalic(); // '이탤릭체' 버튼 클릭 시 함수 호출
+        updateHtmlOutput();
+      }
 
       // 버튼의 데이터를 확인하여 '이미지' 업로드 실행
       if ( buttonValue === 'img' && htmlTags === 'True' ) {
@@ -92,8 +104,16 @@ window.addEventListener('DOMContentLoaded', e => {
           makeImgs( imgEl, fileEl );
       }
       
-      if( buttonValue === 'P' ) wrapTextWithTag( buttonValue );
-      if( buttonValue === 'H1' || 'H2' || 'H3' ) { wrapTextWithTag( buttonValue ); updateHtmlOutput() }
+      if( buttonValue === 'P' ) {
+        console.log('보통 단락'); 
+        wrapTextWithTag( buttonValue );
+      }
+      
+      if( buttonValue === 'H1' || buttonValue === 'H2' ||  buttonValue === 'H3' ) { 
+        console.log('제목 버튼');
+        wrapTextWithTag( buttonValue ); 
+        updateHtmlOutput(); 
+      }
       
     }
 
