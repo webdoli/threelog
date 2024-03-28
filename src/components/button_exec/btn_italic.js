@@ -3,115 +3,123 @@ export function toggleItalic() {
   const selection = window.getSelection();  
   if (!selection.rangeCount) return;
 
-  const upperElementTagName = selection.anchorNode.parentElement.tagName;
-  const lowerElementEM =  selection.anchorNode.parentElement.querySelector('em');
 
-  console.log('선택한 부분 상위 태그이름: ', upperElementTagName );
-  console.log('선택한 부분 하위 태그: ', lowerElementEM );
+  const range = selection.getRangeAt(0);
+  const selectedContent = range.extractContents();
+  const startNode = range.startContainer;
+  const startOffset = range.startOffset;  //첫째행, 첫째줄을 의미
+  const endNode = range.endContainer;
+  const endOffset = range.endOffset;
+  const lastIndex = selectedContent.childNodes.length - 1;
 
-  let upperNodeItalicCHK = ( upperElementTagName === 'EM') ? true : false;
+  // console.log('startNode: ', startNode );
+  // console.log('startOffset: ', startOffset);
   
-  // **** 하위 태그에 em 있음 || 상위 태그에 em 없는 경우 ***
-  // 상황: 이탤릭체 선택된 상태에서 더 넓게 블락을 선택한 경우
-  // 1]새로 선택한 블록 내 텍스트 노드 생성
-  // 2]하위 태그의 em태그 삭제
-  // 3]range.insertNode()로 em태그 생성
-  // 4]텍스트노드.normalize()실행
-  if( !upperNodeItalicCHK && lowerElementEM ) {
-    console.log('하위 em태그(o), 상위 em태그(x)');
-    const range = selection.getRangeAt(0);
-    const selectedText = document.createTextNode( selection.toString());
-    console.log('선택한 텍스트: ', selectedText );
-    range.deleteContents();
+  // console.log('endNode: ', endNode );
+  // console.log('endOffset: ', endOffset );
+  // selectedContent의 첫 번째 항목을 앞의 노드와 병합
+  if (selectedContent.childNodes.length > 0) {
+    const firstNode = selectedContent.childNodes[0];
+    if (firstNode.nodeType === Node.ELEMENT_NODE && (firstNode.nodeName === 'DIV' || firstNode.nodeName === 'P')) {
+      
+      // 첫 번째 노드 병합 로직 (예: 이탤릭 처리 등)
+      console.log('첫번째 노드 로직: ', firstNode );
+      Array.from( firstNode.childNodes ).forEach( node => {
+        let emEl = document.createElement('em');
+        let previousElement = startNode.childNodes[startOffset].previousSibling;
+        emEl.appendChild( node.cloneNode(true) );
+        previousElement.appendChild( emEl );
+        
+      })
+      
+    }
 
-    const emNode = document.createElement('em');
-    emNode.appendChild( selectedText );
+    // range.startContainer 앞에 첫 번째 노드 삽입
+    // range.insertNode(firstNode);
+  }
 
-    range.insertNode( emNode );
+  // 나머지 노드들을 독립적으로 존재하도록 문서에 삽입
+  Array.from(selectedContent.childNodes).forEach(node => {
+    // console.log('node: ', node );
+    // console.log('startNode: ', startNode );
+    // console.log('selectedContent: ', selectedContent );
+    // console.log('startOffset: ', startOffset);
+    startNode.insertBefore( node, startNode.childNodes[startOffset]);
+    
+    // selectedContent.after( node )
+    
+  });
 
+  // 마지막 항목을 뒤의 노드와 병합
+  if (selectedContent.childNodes.length > 0) {
+    const lastNode = selectedContent.childNodes[selectedContent.childNodes.length - 1];
+    if (lastNode.nodeType === Node.ELEMENT_NODE && (lastNode.nodeName === 'DIV' || lastNode.nodeName === 'P')) {
+      // 마지막 노드 병합 로직
+      console.log('마지막 노드: ', lastNode );
+
+      // 여기서는 단순화를 위해 병합 로직을 구현하지 않음
+    }
+
+    // 뒤에 노드 삽입 위치를 찾기 위한 로직이 필요
+    // 이 예제에서는 insertNode를 사용하여 간단히 구현
+    range.collapse(false); // 범위를 끝점으로 이동
+    // range.insertNode(lastNode);
   }
 
   
-  // 하위 태그에 em 없음 || 상위 태그에 em 없는 경우
-  // 상황: 최초로 이탤릭체를 지정하는 경우
-  // 1]텍스트 노드 생성
-  // 2]em태그 결합
-  // 3]선택 위치에 em태그넣기
-  if ( !upperNodeItalicCHK && !lowerElementEM ) {
-    console.log('하위 em태그(x), 상위 em태그(x)');
 
-    let text = selection.toString();
-    const range = selection.getRangeAt(0);
-    let lines = text.split('\n');
-    let linesLen = lines.length -1;
-    console.log('줄바뀜 라인: ', linesLen );
-    range.deleteContents();
-    let wrapper = document.createElement('span');
-
-    lines.map( (line, idx) => {
-      if( idx === 0 ) {
-        let startNode = document.createElement('em');
-        let textNode = document.createTextNode( line );
-        startNode.appendChild( textNode ); 
-        wrapper.appendChild( startNode );
-      } else if( idx === linesLen ) {
-        let midNode = document.createElement('div');
-        let midEmNode = document.createElement('em');
-        let textNode = document.createTextNode( line );
-        midEmNode.appendChild( textNode );
-        midNode.appendChild(midEmNode);
-        wrapper.appendChild( midNode );
-      } else {
-        let endNode = document.createElement('em');
-        let textNode = document.createTextNode( line );
-        endNode.appendChild( textNode );
-        wrapper.appendChild( endNode );
-      }
-    })
-
-    //프로미스 구문
-    range.insertNode( wrapper );
-    console.log('wrapper: ', wrapper );
-
-    // let convertNode = `<em>${text}</em>`;
-    // selection.anchorNode.parentElement.innerHTML = selection.anchorNode.parentElement.innerHTML.replace( text, convertNode );
-  }
-
-  // 하위 태그에 em 없음 || 상위 태그에 em 있는 경우
-  // 상황: em삭제하고 원래대로 되돌림
-  // 1]range노드로 위치 설정
-  // 2]텍스트 노드 생성
-  // 3]기존 em태그 부분 삭제
-  // 4]선택 위치에 텍스트 노드 넣기
-  // 5]textNode.normalize()실행
-  if( upperNodeItalicCHK && !lowerElementEM ) {
-
-    console.log('하위 em태그(x), 상위 em태그(o)');
-    const selectedText = document.createTextNode( selection.toString());
-    const range = selection.getRangeAt(0);
-    selection.anchorNode.parentElement.remove();
-
-    console.log('selectedText: ', selectedText );
-    range.insertNode( selectedText );
-
-    // 선택사항
-    selection.removeAllRanges(); // 기존 선택 범위를 제거
-    const newRange = document.createRange(); // 새 범위 객체 생성
-    newRange.selectNode( selectedText ); // 새로운 텍스트 노드 선택
-    selection.addRange(newRange); // 새 범위를 선택 객체에 추가
-
-    selectedText.parentNode.normalize();
-
-  }
+  // 선택 영역 재설정
+  selection.removeAllRanges();
 
 
-  // 하위 태그에 em 있음 || 상위 태그에 em 있는 경우
-  // 상황: 있을 수 없음, 적어도 일부러 조작하지 않는 이상 시스템 내에서는 불가능함
-  // 1]텍스트만 복사해서 텍스트 노드 생성
-  // 2]em태그 모두 삭제
-  // 3]insert로 텍스트노드 붙여넣기
-  // 4]textNode.normalize()실행
 
-  
-  
+  // const range = selection.getRangeAt(0);
+  // const startNode = range.startContainer;
+  // const startOffset = range.startOffset;
+  // const selectedContent = range.extractContents();
+  // const fragment = document.createDocumentFragment();
+  // const lastIndex = selectedContent.childNodes.length - 1;
+
+  // // 선택된 컨텐츠를 순회하며 처리
+  // Array.from(selectedContent.childNodes).forEach( ( node, idx) => {
+  //     // 블록 레벨 요소 내의 텍스트 노드를 찾아 이탤릭 처리
+  //     // let newNode = node.cloneNode(true); 
+
+  //     if ( idx === lastIndex || idx === 0 && node.nodeType === Node.ELEMENT_NODE && (node.nodeName === 'DIV' || node.nodeName === 'P')) {
+
+  //         Array.from(node.childNodes).forEach( child => {
+
+  //           console.log('첫 or 끝')
+
+  //           let emEl = document.createElement('em');
+  //           emEl.appendChild( child.cloneNode(true) );
+  //           fragment.appendChild( emEl );
+
+  //         });
+            
+  //       } else {
+
+  //         console.log('중간 부분')
+  //         let newNode = node.cloneNode(true); 
+  //         fragment.appendChild(newNode);
+          
+  //     }
+
+  // });
+
+  // console.log('fragment: ', fragment );
+  // // 처리된 내용을 원래의 시작 위치에 삽입
+  // if (startNode.nodeType === Node.TEXT_NODE) {
+  //   // 시작 노드가 텍스트 노드인 경우, 텍스트 노드를 분할하고 그 사이에 삽입
+  //   const textNode = startNode.splitText(startOffset);
+  //   textNode.parentNode.insertBefore(fragment, textNode);
+  // } else if (startNode.nodeType === Node.ELEMENT_NODE) {
+  //   // 시작 노드가 엘리먼트 노드인 경우, 오프셋에 해당하는 위치에 삽입
+  //   startNode.insertBefore(fragment, startNode.childNodes[startOffset]);
+  // }
+
+
+  // // 선택 영역 재설정
+  // selection.removeAllRanges();
+
 }
