@@ -11,6 +11,7 @@ export function toggleItalic() {
   const endNode = range.endContainer;
   const endOffset = range.endOffset;
   const lastIndex = selectedContent.childNodes.length - 1;
+  let fragment = document.createDocumentFragment();
 
   // console.log('startNode: ', startNode );
   // console.log('startOffset: ', startOffset);
@@ -39,34 +40,57 @@ export function toggleItalic() {
   }
 
   // 나머지 노드들을 독립적으로 존재하도록 문서에 삽입
-  Array.from(selectedContent.childNodes).forEach(node => {
-    // console.log('node: ', node );
-    // console.log('startNode: ', startNode );
-    // console.log('selectedContent: ', selectedContent );
-    // console.log('startOffset: ', startOffset);
-    startNode.insertBefore( node, startNode.childNodes[startOffset]);
+  console.log('라스트 인덱스: ', lastIndex );
+
+  
+
+  Array.from(selectedContent.childNodes).forEach( (node, idx) => {
     
+    
+    if( idx !== 0 ) {
+      console.log('노드['+idx+']'+': ', node);
+      fragment.appendChild( node );
+      // startNode.insertBefore( node, startNode.childNodes[startOffset]);
+    } 
+    
+    if( lastIndex === idx ) {
+      
+      
+      const lastNode = selectedContent.childNodes[selectedContent.childNodes.length - 1];
+    
+      if (lastNode.nodeType === Node.ELEMENT_NODE && (lastNode.nodeName === 'DIV' || lastNode.nodeName === 'P')) {
+      // 마지막 노드 병합 로직
+      
+      console.log('마지막 노드: ', lastNode );
+
+      // 여기서는 단순화를 위해 병합 로직을 구현하지 않음
+      }
+
+      // 뒤에 노드 삽입 위치를 찾기 위한 로직이 필요
+      // 이 예제에서는 insertNode를 사용하여 간단히 구현
+      range.collapse(false); // 범위를 끝점으로 이동
+    }
     // selectedContent.after( node )
     
   });
 
-  // 마지막 항목을 뒤의 노드와 병합
-  if (selectedContent.childNodes.length > 0) {
-    const lastNode = selectedContent.childNodes[selectedContent.childNodes.length - 1];
-    if (lastNode.nodeType === Node.ELEMENT_NODE && (lastNode.nodeName === 'DIV' || lastNode.nodeName === 'P')) {
-      // 마지막 노드 병합 로직
-      console.log('마지막 노드: ', lastNode );
+  // // 마지막 항목을 뒤의 노드와 병합
+  // if (selectedContent.childNodes.length > 0) {
+  //   const lastNode = selectedContent.childNodes[selectedContent.childNodes.length - 1];
+  //   if (lastNode.nodeType === Node.ELEMENT_NODE && (lastNode.nodeName === 'DIV' || lastNode.nodeName === 'P')) {
+  //     // 마지막 노드 병합 로직
+  //     console.log('마지막 노드: ', lastNode );
 
-      // 여기서는 단순화를 위해 병합 로직을 구현하지 않음
-    }
+  //     // 여기서는 단순화를 위해 병합 로직을 구현하지 않음
+  //   }
 
-    // 뒤에 노드 삽입 위치를 찾기 위한 로직이 필요
-    // 이 예제에서는 insertNode를 사용하여 간단히 구현
-    range.collapse(false); // 범위를 끝점으로 이동
-    // range.insertNode(lastNode);
-  }
+  //   // 뒤에 노드 삽입 위치를 찾기 위한 로직이 필요
+  //   // 이 예제에서는 insertNode를 사용하여 간단히 구현
+  //   range.collapse(false); // 범위를 끝점으로 이동
+  //   // range.insertNode(lastNode);
+  // }
 
-  
+  startNode.insertBefore( fragment, startNode.childNodes[startOffset]);
 
   // 선택 영역 재설정
   selection.removeAllRanges();
