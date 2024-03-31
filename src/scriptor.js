@@ -10,39 +10,8 @@ import { wrapTextNodesInPTags, convert_to_P_Tag, encodeHtml } from "./components
 import { wrapTextWithTag } from "./components/button_exec/btn_title.js";
 
 window.addEventListener('DOMContentLoaded', e => {
-
+  
   const form = document.getElementById('text-editor');
-  let isComposing = false;
-
-  form.addEventListener('compositionstart', function(e) {
-    isComposing = true;
-  });
-
-  form.addEventListener('compositionend', function(e) {
-    // isComposing = false;
-    // 여기서 입력 처리 로직을 실행
-    setTimeout(() => {
-      processInput(e.target);
-    }, 0);
-
-    
-    
-  });
-
-
-  function processInput(target) {
-    // 실제 입력 처리 로직, 예: 텍스트 노드를 div로 감싸는 등
-    // 이전에 제공된 input 이벤트 처리 로직을 이 위치에 삽입
-    Array.from(target.childNodes).forEach((node) => {
-      console.log('시작');
-      // 노드가 텍스트 노드이면 새로운 div로 감싸기
-      if (node.nodeType === Node.TEXT_NODE) {
-        const divWrapper = document.createElement('div');
-        divWrapper.appendChild(document.createTextNode(node.nodeValue));
-        target.replaceChild(divWrapper, node);
-      }
-    });
-  }
 
   const defaultButtonProps = {
     insert: false,
@@ -50,8 +19,6 @@ window.addEventListener('DOMContentLoaded', e => {
     value: '',
     wrap: false
   };
-  
-  
   
   if ( form != null ){
 
@@ -74,17 +41,9 @@ window.addEventListener('DOMContentLoaded', e => {
   
     });
 
-    
-    // input 이벤트 리스너에서 사용자 입력을 p 태그로 변환하는 로직
-    form.addEventListener('input', function() {
-    
-      // let htmlOutput = document.getElementById('html-output');
-      // let content = e.target.innerHTML;
-      // const targetElement = e.target;
-      if (!isComposing) {
-        processInput(e.target);
-      }
+    form.addEventListener('input', function(e) {
 
+      const contentEditableDiv = e.target;
       updateHtmlOutput();
     
     });
@@ -202,9 +161,7 @@ window.addEventListener('DOMContentLoaded', e => {
 
     }
 
-    
-
-
   }
 
-})
+}
+)
