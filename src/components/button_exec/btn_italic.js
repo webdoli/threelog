@@ -24,10 +24,10 @@ export function toggleItalic () {
 
     let surroundingItalicTag = ( chkItalicSurround( selectedContent ) ) ? true : false;
     let innerItalicTag = ( chkItalicInclude( selectedContent ) ) ? true : false;
-    console.log('이텔릭 시작 & 끝? ', surroundingItalicTag );
-    console.log('이텔릭 내부 존재: ', innerItalicTag );
+    // console.log('이텔릭 시작 & 끝? ', surroundingItalicTag );
+    // console.log('이텔릭 내부 존재: ', innerItalicTag );
 
-    console.log('범위 실행');
+    // console.log('범위 실행');
     setRange( selection, startNode, startOffset, endNode, endOffset );
 
     if( !multiSLC ) {
@@ -107,7 +107,7 @@ export function toggleItalic () {
         console.log('======== 여러 줄 선택 ========');
         // i태그 포함(x), i태그 둘러쌈(x) >> i태그 둘러싸기
         let chkMulti_ItalicRemove = chkMultiLineItalicRemoved( selectedContent );
-        console.log( '이탤릭체 삭제가능: ' , chkMulti_ItalicRemove );
+        // console.log( '이탤릭체 삭제가능: ' , chkMulti_ItalicRemove );
         // 마지막 부분 이텔릭인지 확인
 
         if( chkMulti_ItalicRemove ) {
@@ -118,14 +118,28 @@ export function toggleItalic () {
             })
             
             const firstNode = selectedContent.childNodes[0];
+            console.log('firstNode: ', firstNode );
             Array.from( firstNode.childNodes ).forEach( node => {
 
-                let tmpNode = document.createDocumentFragment();
+                let wrapper = document.createDocumentFragment();
+                let spanNode = document.createElement('span');
+                let clone_ = node.cloneNode(true);
                 let previousElement = startNode.childNodes[startOffset].previousSibling;
-                tmpNode.appendChild( node.cloneNode() );
-                previousElement.appendChild( tmpNode );
+                wrapper.appendChild( clone_ );
+                // tmpNode.appendChild( clone_ );
+                previousElement.appendChild( wrapper );
                 removeEmptyTag( previousElement );
                 previousElement.normalize();
+
+                startRangeNode = wrapper;
+
+                // 새 선택범위 생성:시작점
+                newRange = document.createRange();
+                // 예외처리
+                console.log('startRangeNode.nodeType: ', startRangeNode.nodeType );
+                if( startRangeNode.nodeType !== 11 ) newRange.setStartBefore( startRangeNode );
+                
+                
                 
             });
 
@@ -148,10 +162,24 @@ export function toggleItalic () {
                             // 마지막 노드 병합 로직
                             Array.from( lastNode.childNodes ).forEach( node => {
 
+                                let spanNode = document.createElement('span');
+                                let wrapper = document.createDocumentFragment();
                                 let nextElement = startNode.childNodes[startOffset];
-                                if( nextElement.firstChild ) nextElement.insertBefore( node.cloneNode(true), nextElement.firstChild );
+                                let clone_ = node.cloneNode(true);
+                                wrapper.appendChild( clone_ );
+                                if( nextElement.firstChild ) nextElement.insertBefore( wrapper, nextElement.firstChild );
+                                endRangeNode = wrapper;
                                 removeEmptyTag( nextElement );
                                 nextElement.normalize();
+
+                                // 새 범위 생성: 마지막지점
+                                if( startRangeNode.nodeType !== 11 ) {
+                                    newRange.setEndAfter( endRangeNode );
+                                    selection.removeAllRanges();
+                                    selection.addRange( newRange );
+                                }
+                                
+                                
                             })
 
                         }
@@ -162,8 +190,21 @@ export function toggleItalic () {
                 } 
 
             });
-
+            
+            // 첫줄, 마지막줄 span노드 제거
             startNode.insertBefore( fragment, startNode.childNodes[startOffset]);
+            
+            console.log('이탤릭 제거')
+            console.log('startRangeNode: ', startRangeNode );
+            console.log('endRangeNode: ', endRangeNode );
+            
+            // let newRange = document.createRange();
+            // newRange.setStartBefore( startRangeNode );
+            // newRange.setEndAfter( endRangeNode );
+            // selection.removeAllRanges();
+            // selection.addRange( newRange );
+
+            // removeSpanNode( endRangeNode );
             
             // range.insertNode( selectedContent );
 
@@ -181,14 +222,11 @@ export function toggleItalic () {
                 removeEmptyTag( previousElement );
                 previousElement.normalize();
 
-                // 새로운 블록범위 설정하기
-                startRangeNode = iTag
-                // setRange ( selection, iTag, newRange );
-                // newRange = document.createRange();
-                // newRange.selectNodeContents( iTag );
-                // selection.removeAllRanges();
-                // selection.addRange( newRange );
-
+                // 새로운 블록범위 설정: 시작점
+                startRangeNode = iTag;
+                newRange = document.createRange();
+                newRange.setStartBefore( startRangeNode );
+                
             });
 
             
@@ -218,7 +256,7 @@ export function toggleItalic () {
                         
                         removeITagsAndPreserveText( lastNode );
                         lastNode.normalize();
-
+                        console.log('lastNode: ', lastNode )
                         if (lastNode.nodeType === Node.ELEMENT_NODE && (lastNode.nodeName === 'DIV' || lastNode.nodeName === 'P')) {
                             // 마지막 노드 병합 로직
                             Array.from( lastNode.childNodes ).forEach( node => {
@@ -233,7 +271,10 @@ export function toggleItalic () {
                                 nextElement.normalize();
 
                                 endRangeNode = iTag
-
+                                // 새 범위 생성: 끝지점
+                                newRange.setEndAfter( endRangeNode );
+                                selection.removeAllRanges();
+                                selection.addRange( newRange );
                             })
 
                         }
@@ -245,21 +286,29 @@ export function toggleItalic () {
 
             });
 
-            let newRange = document.createRange();
-            newRange.setStartBefore( startRangeNode );
-            newRange.setEndAfter( endRangeNode );
-            selection.removeAllRanges();
-            selection.addRange( newRange );
-            
             startNode.insertBefore( fragment, startNode.childNodes[startOffset]);
             
+            console.log('이탤릭 추가')
+            console.log('startRangeNode: ', startRangeNode );
+            console.log('endRangeNode: ', endRangeNode );
+
+            // let newRange = document.createRange();
+            // newRange.setStartBefore( startRangeNode );
+            // newRange.setEndAfter( endRangeNode );
+            // selection.removeAllRanges();
+            // selection.addRange( newRange );
+
+
             // selection.removeAllRanges();
         
         }
+        if( startRangeNode.nodeType === 11 ) { selection.removeAllRanges(); }
+        
 
     }
 
     removeEmptyTags( selectedContent );
+    // removeSpanNode( [startRangeNode, endRangeNode] );
 
 }
 
@@ -300,7 +349,7 @@ function removeITagsAndPreserveText( parentNode ) {
 
 // 여러줄일때, 첫번째 노드에 <i>가 있는지 유무 판단
 function chkMultiLineItalicRemoved ( nodes ) {
-    console.log('nodes: ', nodes );
+    // console.log('nodes: ', nodes );
     let allNode = nodes.childNodes;
     let lastLen = allNode.length - 1;
     let lastNodeLen = allNode[lastLen].childNodes.length - 1;
@@ -311,8 +360,8 @@ function chkMultiLineItalicRemoved ( nodes ) {
     let removeItalic = false;
     let startEndItalic = false;
     
-    console.log('firstNode: ', firstNode );
-    console.log('lastNode: ', lastNode );
+    // console.log('firstNode: ', firstNode );
+    // console.log('lastNode: ', lastNode );
    
     if( firstNode ) {
 
@@ -370,7 +419,7 @@ function chkMultiLineItalicRemoved ( nodes ) {
     }
     
 
-    console.log('최종 removeItalic: ', removeItalic )
+    // console.log('최종 removeItalic: ', removeItalic )
     return removeItalic
 
 }
@@ -426,4 +475,26 @@ function setRange ( selection, tag, newRange ) {
     selection.removeAllRanges();
     selection.addRange( newRange );
 
+}
+
+function removeSpanNode( spanNode ) {
+    
+    Array.from( spanNode ).forEach( tag => {
+
+        let textContent = tag.textContent;
+        let iTag = document.createElement('i');
+        let textNode = document.createTextNode( textContent );
+        iTag.appendChild( textNode );
+        let parent = tag.parentNode;
+
+        parent.replaceChild( iTag, tag );
+        parent.normalize();
+
+    })
+    // const textContent = spanNode.textContent;
+    // const textNode = document.createTextNode( textContent );
+    // const parent = spanNode.parentNode;
+    
+    // parent.replaceChild( textNode, spanNode );
+    // parent.normalize();
 }
