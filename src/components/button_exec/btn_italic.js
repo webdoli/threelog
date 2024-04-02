@@ -3,15 +3,14 @@ export function toggleItalic () {
     let selection = window.getSelection();
     if (!selection.rangeCount) return;  
 
-    let selectedText = selection.toString();
-    
-    let range = selection.getRangeAt(0);
-    let newRange;
-    let startRangeNode;
-    let endRangeNode;
+    let selectedText = selection.toString(); // 선택 텍스트 추출
+    let range = selection.getRangeAt(0); // 선택 범위
+    let newRange; // 하위 선택사항 전역 변수: 언제든 선택 범위 저장하기
+    let startRangeNode; // 선택범위 시작 노드: 전역 변수
+    let endRangeNode; // 선택 범위 끝 노드: 전역 변수
 
-    let selectedContent = range.extractContents();
-    let startNode = range.startContainer;
+    let selectedContent = range.extractContents(); // **선택한 텍스트 포함 모든 노드
+    let startNode = range.startContainer; // 선택한 텍스트 상위 노드
     let startOffset = range.startOffset;  //첫째행, 첫째줄을 의미
     let lastIndex = selectedContent.childNodes.length - 1;
 
@@ -23,80 +22,118 @@ export function toggleItalic () {
     // let multiChk = selectedText.split('\n');
 
     let surroundingItalicTag = ( chkItalicSurround( selectedContent ) ) ? true : false;
+    let chkSingleLineItalicRemoved = chkSurroundItalic( selectedContent );
+    console.log('이텔릭 삭제: ', chkSingleLineItalicRemoved );
     let innerItalicTag = ( chkItalicInclude( selectedContent ) ) ? true : false;
     // console.log('이텔릭 시작 & 끝? ', surroundingItalicTag );
     // console.log('이텔릭 내부 존재: ', innerItalicTag );
 
-    // console.log('범위 실행');
-    setRange( selection, startNode, startOffset, endNode, endOffset );
-
     if( !multiSLC ) {
         //한줄 선택
         console.log('======== 한줄 선택 ========');
-        
-        // ** 최초 이탤릭체 지정: 둘러싼 i태그:(x), 하위 i태그:(x) 
-        if ( !innerItalicTag && !surroundingItalicTag ) {
-            
-            console.log('최초 이탤릭체 지정');
-            
-            if( selectedText.trim().length > 0 ) {
-                let textNode = document.createTextNode( selectedText );
-                let wrapper = document.createDocumentFragment();
-                let italicEl = document.createElement('i');
-                italicEl.appendChild( textNode );
-                wrapper.appendChild( italicEl );
-                range.insertNode( wrapper );
-            }
-            
-        } else if( surroundingItalicTag ) {
-            // ** 이탤릭체 삭제: 둘러싼 i태그(o), 하위 i태그(있으나없으나 상관없음) 
-            let hasTextNode = false;
-            selectedContent.childNodes.forEach( node => {
-                if( node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0 ) hasTextNode = true;
-            });
 
-            if( hasTextNode ) {
+        let selectFirstNode = selectedContent.childNodes[0];
 
-                selectedContent.childNodes.forEach( node => {
-                    if( node.tagName !== 'I' ) {
-                        
-                        const wrapper = document.createElement('i');
-                        wrapper.appendChild( node.cloneNode(true) );
-                        node.parentNode.insertBefore( wrapper, node );
-                        node.parentNode.removeChild( node );
+        if( chkSingleLineItalicRemoved ) {
 
-                    }
-                });
-                
-                range.insertNode( selectedContent );
-                // removeEmptyITags(document.getElementById('text-editor'));
-                return;
+          console.log('이탤릭 삭제');
+          // 재귀로 이탤릭 있는지 검사
+          // 이탤릭 태그 모두 삭제
+          // 텍스트노드 병합
+          
 
-            } else {
-
-                // let parentNode = selection.anchorNode.parentElement;
-                let textNode = document.createTextNode( selectedContent.textContent );
-                let wrapper = document.createDocumentFragment();
-                wrapper.appendChild( textNode );
-                range.insertNode( wrapper );
-                // removeEmptyITags(document.getElementById('text-editor'));
-                startNode.normalize();
-
-            }
-        
         } else {
-    
-            let proxyEl = document.createDocumentFragment();
-            proxyEl.appendChild( selectedContent );
 
-            let removeItalicResult = removeITagsAndPreserveText( proxyEl );
-            let iTag = document.createElement('i');
-            iTag.appendChild( removeItalicResult );
-            
-            iTag.normalize();
-            range.insertNode( iTag );
+          console.log('이탤릭 추가');
+          // i태그 생성
+          // 재귀로 i태그 아래 한개씩 추가
+          // range insert실행하기
+          let iTag = document.createElement('i');
+          console.log('selectedContent.firstNode: ', selectedContent.firstNode );
+          selectedContent.querySelectorAll('i').forEach( iTag => {
+
+            iTag.parentNode.removeChild( iTag );
+          
+          });
+
+          iTag.appendChild( selectedContent );
+          range.insertNode( iTag );
+          
+
+          // while( )
+
+          // let iTag = document.createElement('i');
+          // let textNode = document.createTextNode( selectFirstNode.textContent );
+          // iTag.appendChild( textNode );
+          // range.insertNode( iTag );
 
         }
+        // ** 최초 이탤릭체 지정: 둘러싼 i태그:(x), 하위 i태그:(x) 
+        // if ( !innerItalicTag && !surroundingItalicTag ) {
+            
+        //     console.log('최초 이탤릭체 지정 extractContent: ', selectedContent.childNodes );
+            
+        //     if( selectedText.trim().length > 0 ) {
+        //         let textNode = document.createTextNode( selectedText );
+        //         let wrapper = document.createDocumentFragment();
+        //         let italicEl = document.createElement('i');
+
+        //         console.log('한줄, 선택 extract콘텐츠: ', selectedContent );
+
+        //         italicEl.appendChild( selectedContent );
+        //         wrapper.appendChild( italicEl );
+        //         range.insertNode( wrapper );
+        //     }
+            
+        // } else if( surroundingItalicTag ) {
+        //     // ** 이탤릭체 삭제: 둘러싼 i태그(o), 하위 i태그(있으나없으나 상관없음) 
+        //     let hasTextNode = false;
+        //     selectedContent.childNodes.forEach( node => {
+        //         if( node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0 ) hasTextNode = true;
+        //     });
+
+        //     if( hasTextNode ) {
+        //         console.log('텍스트노드 발견 이탤릭체 삭제 해제');
+        //         selectedContent.childNodes.forEach( node => {
+        //             if( node.tagName !== 'I' ) {
+                        
+        //                 const wrapper = document.createElement('i');
+        //                 wrapper.appendChild( node.cloneNode(true) );
+        //                 node.parentNode.insertBefore( wrapper, node );
+        //                 node.parentNode.removeChild( node );
+
+        //             }
+        //         });
+                
+        //         range.insertNode( selectedContent );
+        //         // removeEmptyITags(document.getElementById('text-editor'));
+        //         return;
+
+        //     } else {
+
+        //         // let parentNode = selection.anchorNode.parentElement;
+        //         let textNode = document.createTextNode( selectedContent.textContent );
+        //         let wrapper = document.createDocumentFragment();
+        //         wrapper.appendChild( textNode );
+        //         range.insertNode( wrapper );
+        //         // removeEmptyITags(document.getElementById('text-editor'));
+        //         startNode.normalize();
+
+        //     }
+        
+        // } else {
+    
+        //     let proxyEl = document.createDocumentFragment();
+        //     proxyEl.appendChild( selectedContent );
+
+        //     let removeItalicResult = removeITagsAndPreserveText( proxyEl );
+        //     let iTag = document.createElement('i');
+        //     iTag.appendChild( removeItalicResult );
+            
+        //     iTag.normalize();
+        //     range.insertNode( iTag );
+
+        // }
 
         removeEmptyTags( selectedContent )
         
@@ -316,6 +353,44 @@ const chkItalicSurround = ( content ) => { return createContainer( content ).mat
 const chkItalicInclude = ( content ) => { return createContainer( content ).match( /<i>.*?<\/i>/gs ); }
 const chkItalicEnd = ( content ) => { return createContainer( content ).match( /<\/i>$/ ); };
 const chkItalicStart = ( content ) => { return createContainer( content ).match( /^<i>/ ); }
+
+function chkSurroundItalic ( nodes ) {
+
+  let res = true;
+
+  if( nodes.childNodes.length < 2 ) {
+    
+    res = false;
+    return
+  
+  } else {
+    
+    let allTagNums = nodes.children.length;
+    let iCount = countDirectNestedIElements( nodes );
+    ( allTagNums !== iCount ) ? res = false : res = true;
+
+  }
+
+  return res
+
+}
+
+// 중첩된 i찾기
+function countDirectNestedIElements( element ) {
+
+  let count = 0;
+  element.childNodes.forEach( node => {
+    if ( node.nodeName.toLowerCase() === 'i' ) {
+      count++;
+      // 중첩된 <i>를 찾았으므로 더 이상 탐색하지 않습니다.
+      return;
+    }
+    // 현재 노드가 <i>가 아니라면, 해당 노드의 자식 노드를 재귀적으로 탐색합니다.
+    count += countDirectNestedIElements( node );
+  });
+
+  return count;
+}
 
 function createContainer ( content ) {
     console.log('i태그 둘러싸임 체크 selectContented: ', content );
