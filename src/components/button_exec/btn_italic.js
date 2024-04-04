@@ -3,13 +3,16 @@ export function toggleItalic () {
     let selection = window.getSelection();
     if (!selection.rangeCount) return;  
 
-    let selectedText = selection.toString(); // 선택 텍스트 추출
+    
     let range = selection.getRangeAt(0); // 선택 범위
     let newRange; // 하위 선택사항 전역 변수: 언제든 선택 범위 저장하기
     let startRangeNode; // 선택범위 시작 노드: 전역 변수
     let endRangeNode; // 선택 범위 끝 노드: 전역 변수
-
+    let cloneContents = range.cloneContents();
+    
+    let selectedText = selection.toString(); // 선택 텍스트 추출
     let selectedContent = range.extractContents(); // **선택한 텍스트 포함 모든 노드
+    console.log('selectedContent: ', selectedContent );
     let startNode = range.startContainer; // 선택한 텍스트 상위 노드
     let startOffset = range.startOffset;  //첫째행, 첫째줄을 의미
     let lastIndex = selectedContent.childNodes.length - 1;
@@ -21,17 +24,181 @@ export function toggleItalic () {
     let multiSLC = ( selectedText.split('\n').length > 1 ) ? true : false; //여러줄 선택 or 한줄 선택
     // let multiChk = selectedText.split('\n');
 
-    let surroundingItalicTag = ( chkItalicSurround( selectedContent ) ) ? true : false;
-    let chkSingleLineItalicRemoved = chkSurroundItalic( selectedContent );
-    console.log('이텔릭 삭제: ', chkSingleLineItalicRemoved );
-    let innerItalicTag = ( chkItalicInclude( selectedContent ) ) ? true : false;
+    // let surroundingItalicTag = ( chkItalicSurround( selectedContent ) ) ? true : false;
+    // let chkSingleLineItalicRemoved = chkSurroundItalic( selectedContent );
+   
+    // let innerItalicTag = ( chkItalicInclude( selectedContent ) ) ? true : false;
     // console.log('이텔릭 시작 & 끝? ', surroundingItalicTag );
     // console.log('이텔릭 내부 존재: ', innerItalicTag );
+    function checkAllTextWrappedByITag(node) {
+        let allTextWrapped = true;
+        console.log('들어온 node: ', node );
+        function traverseNodes(node) {
+            // 텍스트 노드이며 내용이 있을 경우
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                // 부모가 <i> 태그가 아니면 false
+                if (node.parentNode.tagName.toUpperCase() !== 'I') {
+                    allTextWrapped = false;
+                    return;
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                // <i> 태그 내에 있는 요소 노드는 건너뛰고, 다른 요소 노드들은 자식 노드를 검사
+                if (node.tagName.toUpperCase() !== 'I') {
+                    for (let child of node.childNodes) {
+                        traverseNodes(child);
+                        // 하나라도 감싸지 않은 텍스트가 발견되면 추가 탐색을 중단
+                        if (!allTextWrapped) return;
+                    }
+                }
+            }
+        }
+    
+        traverseNodes(node);
+    
+        return allTextWrapped;
+    }
+
+    // 텍스트 노드만 선택될 때 상위노드에서 <i>찾기 
+    function removeNestedITags( range ) {
+        
+        let commonAncestor = range.commonAncestorContainer;
+        let setRange;
+    
+        // commonAncestor가 텍스트 노드인 경우, 부모 요소를 사용합니다.
+        const parentElement = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentNode : commonAncestor;
+        console.log('parentElement: ', parentElement );
+
+        // 선택된 컨텐츠를 임시 컨테이너에 복사합니다.
+        let container = document.createElement("div");
+        container.appendChild(range.cloneContents());
+
+        let iTagRemoved = false;
+
+        // parentElement부터 시작하여 문서의 루트까지 거슬러 올라가며 <i> 태그를 찾아 제거합니다.
+        function unwrapElement(element) {
+
+            // <i> 태그를 제거했는지 여부에 대한 플래그
+            
+            if ( element.nodeType === Node.ELEMENT_NODE && element.tagName === 'I') {
+                
+                const parent = element.parentNode;
+                console.log('i태그 발경: ', parent)
+                while (element.firstChild) {
+                    parent.insertBefore(element.firstChild, element);
+                }
+                parent.removeChild(element);
+                iTagRemoved = true;
+                
+            } else {
+                
+                Array.from( element.childNodes ).forEach( child => {
+                    // 재귀 호출 결과를 iTagRemoved 플래그에 반영
+                    if (unwrapElement(child)) {
+                        iTagRemoved = true;
+                    }
+                });
+        
+            }
+
+            // <i> 태그가 제거된 경우, 임시 컨테이너의 변경된 내용을 기반으로 선택 범위를 업데이트합니다.
+            if (iTagRemoved) {
+                let docFrag = document.createDocumentFragment();
+                while (container.firstChild) {
+                    docFrag.appendChild(container.firstChild);
+                }
+                range.deleteContents(); // 기존 선택 범위 내용을 삭제
+                range.insertNode(docFrag); // 변경된 내용을 삽입
+                return docFrag; // 변경된 내용을 반환
+            } else {
+                // <i> 태그가 없는 경우, 원본 컨텐츠를 반환
+                return range.cloneContents();
+            }
+        
+    
+            // <i> 태그 제거 여부에 관계없이 현재 처리중인 element 반환
+            return element;
+        }
+
+
+    
+        // 제거 작업을 실행합니다.
+        return unwrapElement( parentElement );
+    
+        // 선택 영역의 컨텐츠를 업데이트합니다.
+        // selection.removeAllRanges();
+        // const newRange = document.createRange();
+        // newRange.selectNodeContents( setRange );
+        // selection.addRange( newRange );
+    }
+
+
+    // 하위 노드에서 <i>제거 함수
+    function removeITagsFromDiv( divElement ) {
+        // 재귀적으로 모든 노드를 순회하며 <i> 태그를 찾아 제거하는 함수
+        console.log('divElement: ', divElement );
+        const fragment = document.createDocumentFragment();
+
+        function removeITags( node ) {
+            // 자식 노드를 순회하면서 <i> 태그를 찾음
+            for ( let i = 0; i < node.childNodes.length; i++ ) {
+                let child = node.childNodes[i];
+                
+                // <i> 태그를 발견하면 제거
+                if (child.tagName === 'I') {
+                    while (child.firstChild) {
+                        fragment.appendChild(child.firstChild);
+                    }
+                    node.removeChild(child);
+                } else {
+                  // <i> 태그가 아닌 경우, 자식 노드에 대해 재귀적으로 검사
+                    fragment.appendChild(child);
+                    removeITags(child);
+                }
+            }
+        }
+        
+        // 주어진 div 태그에 대해 <i> 태그 제거 시작
+        removeITags( divElement );
+        return fragment;
+    }
 
     if( !multiSLC ) {
         //한줄 선택
         console.log('======== 한줄 선택 ========');
-        toggleItalicForSelection( selectedContent, range );
+        
+        // let divNode = document.createElement('div');
+        // divNode.appendChild( cloneContents );
+        let chkRemovedItalic;
+        if( cloneContents.childNodes.length > 1 ) {
+            
+            fragment.appendChild( cloneContents );
+            chkRemovedItalic = checkAllTextWrappedByITag( fragment );
+        
+        } else {
+
+            chkRemovedItalic = removeNestedITags( range )
+        }
+        
+
+        if( !chkRemovedItalic ) {
+        
+            console.log('이탤릭 감싸기')
+            let wrapper = document.createDocumentFragment();
+            const newITag = document.createElement("i");
+            newITag.appendChild( selectedContent );
+            wrapper.appendChild( newITag );
+            range.insertNode(wrapper);
+        
+        } else {
+            console.log('이탤릭 해제');
+            console.log('해제 노드: ', chkRemovedItalic );
+            // 노드 아래 <i>태그 모두 삭제
+            // let tempContainer = document.createElement('div');
+            // tempContainer.appendChild( cloneContents );
+            // let iTagsremovedNodes = removeITagsFromDiv( tempContainer );
+            // console.log('i태그 제거된 노드s: ', iTagsremovedNodes );
+            // range.insertNode( iTagsremovedNodes.childNodes[0] );
+        }
         // let selectFirstNode = selectedContent.childNodes[0];
 
         // if( chkSingleLineItalicRemoved ) {
@@ -346,57 +513,112 @@ const chkItalicInclude = ( content ) => { return createContainer( content ).matc
 const chkItalicEnd = ( content ) => { return createContainer( content ).match( /<\/i>$/ ); };
 const chkItalicStart = ( content ) => { return createContainer( content ).match( /^<i>/ ); }
 
-// <i>삭제 함수
+// <i>검사 함수
 function toggleItalicForSelection(selectedContent, range) {
 
     // let selectedContent = range.cloneContents();
-
-    console.log('selectedConen: ', selectedContent );
     // let extractContent = range.extractContents();
     // 선택한 컨텐츠를 임시 div에 넣어 분석합니다.
-
-    const container = document.createElement("div");
-    container.appendChild( selectedContent );
+    
+    // const container = document.createElement("div");
+    // container.appendChild( selectedContent );
 
     // <i> 태그를 포함하는지 검사합니다.
-    const allITags = container.querySelectorAll("i");
+    const allITags = selectedContent.querySelectorAll("i");
     let isFullyItalic = true;
 
-    // 컨테이너 내의 모든 텍스트 노드를 찾아서 검사합니다.
+    // <i>태그로 시작여부 검사
+    // .children으로 요소 검사
+    // 요소 내 하위요소에 <i>태그 있는지 검사
+    function iTagStartEnd( container ) {
+
+        Array.from( container.childNodes ).forEach( ( nodes, idx ) => {
+
+            if( idx === 0 ) {
+                if ( nodes[idx].nodeType === 3 ) return;
+            }
+
+        })
+        if( container.childNodes[0].nodeType === 3 ){
+            return
+        } else {
+            Array.from( container.children ).forEach( node => {
+
+            })
+        }
+
+    }
+
+    // 빈 요소 포함 <i>태그가 있는지 재귀적 확인, <i>태그가 존재할 경우 false 반환
+    // function containsITag(node) {
+    //     // 현재 노드가 ELEMENT_NODE이고, 태그 이름이 'I'인 경우
+    //     if (node.nodeType === Node.ELEMENT_NODE && node.tagName.toUpperCase() === 'I') {
+    //         return true;
+    //     }
+    //     // 현재 노드의 모든 자식 노드에 대해 재귀적으로 확인
+    //     for (let child of node.childNodes) {
+    //         if (containsITag(child)) {
+    //             return true; // <i> 태그를 찾은 경우
+    //         }
+    //     }
+    //     return false; // <i> 태그를 찾지 못한 경우
+    // }
+
+    
+
+    
+
+    //  내의 모든 텍스트 노드를 찾아서 검사합니다.
     function checkIfAllItalic( node ) {
-        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0 && !node.parentNode.matches("i")) {
+        console.log('i태그 체크');
+        if ( node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0 && !node.parentNode.matches("i") ) {
+            console.log('node.nodeName: ', node.nodeName );
             isFullyItalic = false;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
+            console.log('node.nodeName: ', node.nodeName );
             Array.from(node.childNodes).forEach(checkIfAllItalic);
-        }   
+        } else {
+            console.log('그 어느 것에도 해당 안 됨');
+        }
+    
     }
 
-    checkIfAllItalic(container);
+    console.log('isFullyItalic: ', isFullyItalic );
+    console.log('allITags length: ', allITags.length );
 
-    if (isFullyItalic && allITags.length > 0) {
-      // 선택한 범위 내 모든 텍스트가 이미 이탤릭체인 경우, 이탤릭체를 해제합니다.
-
-      removeNestedITags( selectedContent );
-      
-
-        removedItag.forEach(iTag => {
-        
-            const parent = iTag.parentNode;
-            while (iTag.firstChild) parent.insertBefore(iTag.firstChild, iTag);
-            parent.removeChild(iTag);
-        });
-
-        // 변경된 컨텐츠를 원래 범위에 다시 삽입합니다.
-        range.deleteContents();
-        range.insertNode(container);
+    checkIfAllItalic(selectedContent);
+    
+    if ( isFullyItalic && allITags.length > 0 ) {
+        console.log('이텔릭 제거해')
+        return true
     } else {
-      // 선택한 범위에 이탤릭체를 적용합니다.
-        console.log('이탤릭체 적용');
-        const newITag = document.createElement("i");
-        newITag.appendChild( selectedContent );
-        console.log('newITag: ', newITag );
-        range.insertNode(newITag);
+        console.log('이탤릭 씌워')
+        return false
     }
+
+    // if (isFullyItalic && allITags.length > 0) {
+    //   // 선택한 범위 내 모든 텍스트가 이미 이탤릭체인 경우, 이탤릭체를 해제합니다.
+
+    //     removeNestedITags( selectedContent );
+
+    //     removedItag.forEach(iTag => {
+        
+    //         const parent = iTag.parentNode;
+    //         while (iTag.firstChild) parent.insertBefore(iTag.firstChild, iTag);
+    //         parent.removeChild(iTag);
+    //     });
+
+    //     // 변경된 컨텐츠를 원래 범위에 다시 삽입합니다.
+    //     range.deleteContents();
+    //     range.insertNode(container);
+    // } else {
+    //   // 선택한 범위에 이탤릭체를 적용합니다.
+        
+    //     const newITag = document.createElement("i");
+    //     newITag.appendChild( selectedContent );
+    //     console.log('newITag: ', newITag );
+    //     range.insertNode(newITag);
+    // }
 
     // 선택을 복원합니다.
     // selection.removeAllRanges();
