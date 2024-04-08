@@ -15,11 +15,16 @@ export function toggleItalic () {
     let selectedContent = range.extractContents(); // **선택한 텍스트 포함 모든 노드
     console.log('selectedContent: ', selectedContent );
     let startNode = range.startContainer; // 선택한 텍스트 상위 노드
-    let startOffset = range.startOffset;  //첫째행, 첫째줄을 의미
+    let startOffset = range.startOffset;  //첫째행, 첫째줄을 의미//첫째행, 첫째줄을 의미
     let lastIndex = selectedContent.childNodes.length - 1;
 
     let endNode = range.endContainer;
     let endOffset = range.endOffset;
+
+    console.log('startNode: ', startNode );
+    console.log('startOffset: ', startOffset );
+    console.log('startNode.childNodes[startOffset]: ', startNode.childNodes[startOffset])
+
 
     let fragment = document.createDocumentFragment();
     let multiSLC = ( selectedText.split('\n').length > 1 ) ? true : false; //여러줄 선택 or 한줄 선택
@@ -187,101 +192,7 @@ export function toggleItalic () {
             console.log('i태그 제거된 노드s: ', iTagsremovedNodes );
             range.insertNode( iTagsremovedNodes );
         }
-        // let selectFirstNode = selectedContent.childNodes[0];
-
-        // if( chkSingleLineItalicRemoved ) {
-
-        //     console.log('이탤릭 삭제');
-        //     // 재귀로 이탤릭 있는지 검사
-        //     // 이탤릭 태그 모두 삭제
-        //     // 텍스트노드 병합
         
-
-        // } else if( !chkSingleLineItalicRemoved ) {
-
-        //     console.log('이탤릭 추가');
-            
-        //     let iTag = document.createElement('i');
-        //     selectedContent.querySelectorAll('i').forEach( iTag => {
-
-        //         // **Error 중복된 i태그 내의 텍스트는 살려둬야 하는데 모두 삭제됨 
-        //         iTag.parentNode.removeChild( iTag );
-        
-        //     });
-
-        //     iTag.appendChild( selectedContent );
-        //     range.insertNode( iTag );
-
-        // }
-
-
-        // ** 최초 이탤릭체 지정: 둘러싼 i태그:(x), 하위 i태그:(x) 
-        // if ( !innerItalicTag && !surroundingItalicTag ) {
-            
-        //     console.log('최초 이탤릭체 지정 extractContent: ', selectedContent.childNodes );
-            
-        //     if( selectedText.trim().length > 0 ) {
-        //         let textNode = document.createTextNode( selectedText );
-        //         let wrapper = document.createDocumentFragment();
-        //         let italicEl = document.createElement('i');
-
-        //         console.log('한줄, 선택 extract콘텐츠: ', selectedContent );
-
-        //         italicEl.appendChild( selectedContent );
-        //         wrapper.appendChild( italicEl );
-        //         range.insertNode( wrapper );
-        //     }
-            
-        // } else if( surroundingItalicTag ) {
-        //     // ** 이탤릭체 삭제: 둘러싼 i태그(o), 하위 i태그(있으나없으나 상관없음) 
-        //     let hasTextNode = false;
-        //     selectedContent.childNodes.forEach( node => {
-        //         if( node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0 ) hasTextNode = true;
-        //     });
-
-        //     if( hasTextNode ) {
-        //         console.log('텍스트노드 발견 이탤릭체 삭제 해제');
-        //         selectedContent.childNodes.forEach( node => {
-        //             if( node.tagName !== 'I' ) {
-                        
-        //                 const wrapper = document.createElement('i');
-        //                 wrapper.appendChild( node.cloneNode(true) );
-        //                 node.parentNode.insertBefore( wrapper, node );
-        //                 node.parentNode.removeChild( node );
-
-        //             }
-        //         });
-                
-        //         range.insertNode( selectedContent );
-        //         // removeEmptyITags(document.getElementById('text-editor'));
-        //         return;
-
-        //     } else {
-
-        //         // let parentNode = selection.anchorNode.parentElement;
-        //         let textNode = document.createTextNode( selectedContent.textContent );
-        //         let wrapper = document.createDocumentFragment();
-        //         wrapper.appendChild( textNode );
-        //         range.insertNode( wrapper );
-        //         // removeEmptyITags(document.getElementById('text-editor'));
-        //         startNode.normalize();
-
-        //     }
-        
-        // } else {
-    
-        //     let proxyEl = document.createDocumentFragment();
-        //     proxyEl.appendChild( selectedContent );
-
-        //     let removeItalicResult = removeITagsAndPreserveText( proxyEl );
-        //     let iTag = document.createElement('i');
-        //     iTag.appendChild( removeItalicResult );
-            
-        //     iTag.normalize();
-        //     range.insertNode( iTag );
-
-        // }
-
         removeEmptyTags( selectedContent )
         
     }

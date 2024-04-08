@@ -24,7 +24,6 @@ export function wrapChildrenInSpan( fragmentElement ) {
 export function checkParentNode ( element ) {
 
     let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
-
     while( parentElement.parentNode ) {
         
         if( parentElement.parentNode.tagName === 'DIV' || parentElement.parentNode.tagName === 'P' ) return parentElement;
@@ -197,6 +196,138 @@ export function removeITagsNodes ( divElement ) {
 
     // <div> 태그의 최상위 하위 요소들에 대해 <i> 태그 검사 및 삭제 수행
     removeITags(divElement);
+
+}
+
+
+/********************************/
+// removeITagsNodes함수 //
+/********************************/
+//:: 하위 노드를 순회하며, <i>태그가 나오면 true반환, <i>태그가 없으면 false 반환.
+
+export function removeEmptyTag( container ) {
+
+    const tags = container.querySelectorAll('*');
+    
+    tags.forEach( tag => {
+        if ( tag.textContent.trim().length === 0) { // 공백 텍스트 노드일 경우 삭제
+            tag.parentNode.removeChild( tag );
+        }
+    });
+}
+
+// 하위요소 빈태그 삭제하기
+export function removeEmptyTags( contents ) {
+    console.log('remove제거: ', contents );
+    contents.childNodes.forEach( node => {
+        // console.log('빈껍데기 삭제: ', node );
+        if( node.nodeType === Node.ELEMENT_NODE ) {
+            console.log('노드 이름: ', node.tagName );
+
+
+            // node.querySelectorAll("*").forEach( ( element, idx )=> {
+            //     console.log('엘리멘트: ', element );
+            //     if( element.innerHTML.trim() === "") {
+            //         console.log('엘리먼트 제거: ', element )
+            //         element.parentNode.removeChild( element );
+            //         idx--;
+
+            //     }
+
+            // })
+            node.querySelectorAll('*').forEach( element => {
+                // 요소가 빈 태그인지 확인합니다. (textContent가 없고, 자식 요소도 없는 경우)
+                if (!element.textContent.trim() && element.children.length === 0) {
+                    // 빈 태그라면, 부모 요소로부터 해당 태그를 삭제합니다.
+                    console.log('빈태그 발견 삭제: ', element );
+                    element.parentNode.removeChild(element);
+                }
+            });
+        }
+        
+    })
+
+}
+
+// 노드 아래 <i>태그만 찾아서 모두 삭제(텍스트는 유지)
+export function removeITagsAndPreserveText( parentNode ) {
+
+    let res = parentNode
+    const iTags = parentNode.querySelectorAll('i');
+
+    iTags.forEach( iTag => {
+        // `<i>` 태그의 모든 자식 노드를 순회하면서 부모 노드로 이동
+        while (iTag.firstChild) {
+            iTag.parentNode.insertBefore(iTag.firstChild, iTag);
+        }
+
+        // 모든 자식 노드 이동 후, `<i>` 태그 자체를 삭제
+        iTag.parentNode.removeChild(iTag);
+    });
+
+    return res
+}
+
+
+/**********************************/
+// chkMultiLineItalicRemoved 함수 //
+/**********************************/
+// 여러줄일때, 첫번째 노드에 <i>가 있는지 유무 판단
+export function chkMultiLineItalicRemoved ( nodes ) {
+    
+    let allNode = nodes.childNodes;
+    let lastLen = allNode.length - 1;
+    let lastNodeLen = allNode[lastLen].childNodes.length - 1;
+    let firstNode = ( allNode[0].nodeType === Node.ELEMENT_NODE ) ? allNode[0].childNodes[0] : null;
+    let lastNode = allNode[lastLen].childNodes[lastNodeLen];
+    let removeItalic = false;
+    let startEndItalic = false;
+   
+    if( firstNode ) {
+
+        if( firstNode.nodeType === Node.ELEMENT_NODE && lastNode.nodeType === Node.ELEMENT_NODE )  { startEndItalic = true; }
+        if( startEndItalic ) {
+            if( firstNode.querySelectorAll('i') !== null && lastNode.querySelectorAll('i') !== null ) removeItalic = true;
+        } 
+
+        if( startEndItalic && removeItalic ) {
+
+            nodes.childNodes.forEach( (node, idx) => {
+                // 중간값 계산
+                if( idx !== 0 && idx !== lastLen ) {
+                    // 텍스트 노드가 하나라도 나오면 아웃 removeItalic = false
+                    // console.log('중간 연산 node: ', node );
+                    for( let i=0; i < node.childNodes.length; i++ ) {
+
+                        if( removeItalic ) {
+
+                            let tag = node.childNodes[i]; 
+
+                            if( tag.nodeType !== Node.ELEMENT_NODE || tag.nodeType === Node.TEXT_NODE ) {
+                                removeItalic = false;
+                                break;
+                            } else if( tag.querySelectorAll('i') === null ) {
+                                // 엘리먼트 노드 중에서 i가 없는게 하나라도 있으면 아웃 removeItalic = false
+                                removeItalic = false;
+                                break;
+                            } else {
+                                // 그외 i가 모두 존재 >> 이탤릭체 제거 removeItalic = true
+                                removeItalic = true;
+                                // console.log('이탤릭 삭제 가능 removeItalic: ', removeItalic )
+                            }
+
+                        }
+                    
+                    }
+
+                }
+            });
+
+        }
+    }
+    
+    // console.log('최종 removeItalic: ', removeItalic )
+    return removeItalic
 
 }
 
