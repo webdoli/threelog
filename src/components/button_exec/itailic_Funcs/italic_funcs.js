@@ -218,35 +218,53 @@ export function removeEmptyTag( container ) {
 
 // 하위요소 빈태그 삭제하기
 export function removeEmptyTags( contents ) {
-    console.log('remove제거: ', contents );
+    // console.log('remove제거: ', contents );
     contents.childNodes.forEach( node => {
-        // console.log('빈껍데기 삭제: ', node );
+        
         if( node.nodeType === Node.ELEMENT_NODE ) {
-            console.log('노드 이름: ', node.tagName );
+            // console.log('node: ', node );
+            node.querySelectorAll("*").forEach( ( element, idx )=> {
+                console.log('엘리멘트: ', element );
+                console.log('firstChild: ', element.firstChild );
+                // if( element.innerHTML.trim() === "" && element.children.length === 0 ) {
+                //     console.log('엘리먼트 제거: ', element )
+                //     element.parentNode.removeChild( element );
+                //     idx--;
 
+                // }
 
-            // node.querySelectorAll("*").forEach( ( element, idx )=> {
-            //     console.log('엘리멘트: ', element );
-            //     if( element.innerHTML.trim() === "") {
-            //         console.log('엘리먼트 제거: ', element )
-            //         element.parentNode.removeChild( element );
-            //         idx--;
-
+            })
+            // node.querySelectorAll('*').forEach( element => {
+            //     // 요소가 빈 태그인지 확인합니다. (textContent가 없고, 자식 요소도 없는 경우)
+            //     if (!element.textContent.trim() && element.children.length === 0) {
+            //         // 빈 태그라면, 부모 요소로부터 해당 태그를 삭제합니다.
+            //         console.log('빈태그 발견 삭제: ', element );
+            //         element.parentNode.removeChild(element);
             //     }
-
-            // })
-            node.querySelectorAll('*').forEach( element => {
-                // 요소가 빈 태그인지 확인합니다. (textContent가 없고, 자식 요소도 없는 경우)
-                if (!element.textContent.trim() && element.children.length === 0) {
-                    // 빈 태그라면, 부모 요소로부터 해당 태그를 삭제합니다.
-                    console.log('빈태그 발견 삭제: ', element );
-                    element.parentNode.removeChild(element);
-                }
-            });
+            // });
         }
         
-    })
+    });
 
+    return contents;
+
+}
+
+// 하위요소와 그 자식노드 중에서 빈태그 찾아서 제거하기
+export function removeEmptyNodes(node) {
+    Array.from(node.childNodes).forEach(child => {
+        // 자식 노드가 요소 노드인지 확인
+        if (child.nodeType === Node.ELEMENT_NODE) {
+            // 자식 노드가 비어있지 않은지 확인: 텍스트가 있거나, 자식 요소가 있는 경우
+            if (!child.textContent.trim() && child.children.length === 0) {
+                // 비어 있는 요소 노드만 제거
+                node.removeChild(child);
+            } else {
+                // 재귀적으로 자식 노드 검사
+                removeEmptyNodes(child);
+            }
+        }
+    });
 }
 
 // 노드 아래 <i>태그만 찾아서 모두 삭제(텍스트는 유지)

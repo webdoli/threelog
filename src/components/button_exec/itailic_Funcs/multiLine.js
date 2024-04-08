@@ -19,7 +19,6 @@ export default function multiLine ( props ) {
     let endRangeNode;
 
     let chkMulti_ItalicRemove = chkMultiLineItalicRemoved( selectedContent );
-        console.log('이탤릭체 부분: ', chkMulti_ItalicRemove ); 
         // 마지막 부분 이텔릭인지 확인
         if( chkMulti_ItalicRemove ) {
             // 순환하며 이탤릭체 제거
