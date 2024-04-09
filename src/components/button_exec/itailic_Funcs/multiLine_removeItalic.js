@@ -26,6 +26,7 @@ export function multiLineRemovingItag ( props ) {
         let wrapper = document.createDocumentFragment();
         let spanNode = document.createElement('span');
         let clone_ = node.cloneNode(true);
+        console.log('clone_: ', clone_ );
         let previousElement = startNode.childNodes[startOffset].previousSibling;
         wrapper.appendChild( clone_ );
         // tmpNode.appendChild( clone_ );

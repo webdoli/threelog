@@ -1,4 +1,4 @@
-import { removeEmptyTags, chkMultiLineItalicRemoved } from "./italic_funcs.js";
+import { chkMultiLineItalicRemoved } from "./italic_funcs.js";
 import { multiLineCreatingItag } from "./multiLine_setItalic.js";
 import { multiLineRemovingItag } from "./multiLine_removeItalic.js";
 
@@ -50,7 +50,5 @@ export default function multiLine ( props ) {
                 endRangeNode
             });   
         }
-
-    removeEmptyTags( selectedContent );
     
 }

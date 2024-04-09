@@ -22,7 +22,7 @@ export function wrapChildrenInSpan( fragmentElement ) {
 //:: 상위에 <div>태그가 나올 때까지 상위 노드를 향해 순회하며, <div>태그가 나오는 바로 아래 노드를 반환 함.
 
 export function checkParentNode ( element ) {
-
+    console.log('상위 노드검사: ', element );
     let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
     while( parentElement.parentNode ) {
         
@@ -33,6 +33,30 @@ export function checkParentNode ( element ) {
 
 }
 
+export function checkParentNodeDiv ( element ) {
+    console.log('현재 노드: ', element.nodeName );
+    if( element.nodeName === 'DIV' ) {
+        let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
+        while( parentElement.parentNode ) {
+        
+            if( parentElement.parentNode.tagName === 'DIV' || parentElement.parentNode.tagName === 'P' ) return parentElement;
+            parentElement = parentElement.parentNode;
+    
+        }
+
+    } else {
+        let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
+        while( parentElement.parentNode ) {
+        
+            if( parentElement.parentNode.tagName === 'DIV' || parentElement.parentNode.tagName === 'P' ) return parentElement.parentNode;
+            parentElement = parentElement.parentNode;
+    
+        }
+    }
+    
+
+}
+
 
 /********************************/
 // checkForItalicInTextNode함수 //
@@ -40,7 +64,7 @@ export function checkParentNode ( element ) {
 //:: 상위에 <div>태그가 나올 때까지 상위 노드를 향해 순회하며, <i>태그가 나오면 true반환, <i>태그가 없으면 false 반환.
 
 export function checkForItalicInTextNode ( element ) {
-
+    console.log('상위노드 i검사 element: ', element );
     let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
     
     if( parentElement.tagName === 'I' ) { console.log('i발견'); return true; }
@@ -170,7 +194,6 @@ export function removeAllITags( element ) {
 }
 
 
-
 /********************************/
 // removeITagsNodes함수 //
 /********************************/
@@ -217,38 +240,20 @@ export function removeEmptyTag( container ) {
 }
 
 // 하위요소 빈태그 삭제하기
-export function removeEmptyTags( contents ) {
-    // console.log('remove제거: ', contents );
-    contents.childNodes.forEach( node => {
-        
-        if( node.nodeType === Node.ELEMENT_NODE ) {
-            // console.log('node: ', node );
-            node.querySelectorAll("*").forEach( ( element, idx )=> {
-                console.log('엘리멘트: ', element );
-                console.log('firstChild: ', element.firstChild );
-                // if( element.innerHTML.trim() === "" && element.children.length === 0 ) {
-                //     console.log('엘리먼트 제거: ', element )
-                //     element.parentNode.removeChild( element );
-                //     idx--;
-
-                // }
-
-            })
-            // node.querySelectorAll('*').forEach( element => {
-            //     // 요소가 빈 태그인지 확인합니다. (textContent가 없고, 자식 요소도 없는 경우)
-            //     if (!element.textContent.trim() && element.children.length === 0) {
-            //         // 빈 태그라면, 부모 요소로부터 해당 태그를 삭제합니다.
-            //         console.log('빈태그 발견 삭제: ', element );
-            //         element.parentNode.removeChild(element);
-            //     }
-            // });
+export function removeEmptyTags( element ) {
+    for (var i = 0; i < element.childNodes.length; i++) {
+        var child = element.childNodes[i];
+        if (child.nodeType === Node.ELEMENT_NODE) {
+            if (!child.textContent.trim()) {
+                element.removeChild(child);
+                i--;
+            } else {
+                removeEmptyTags(child);
+            }
         }
-        
-    });
-
-    return contents;
-
+    }
 }
+
 
 // 하위요소와 그 자식노드 중에서 빈태그 찾아서 제거하기
 export function removeEmptyNodes(node) {
@@ -350,21 +355,19 @@ export function chkMultiLineItalicRemoved ( nodes ) {
 }
 
 
-// export function checkForItalicInNodes ( element ) {
+// Div태그 아래 요소들을 모두 i태그 아래로 옮김
+export function transInnerNode( node ) {
 
-//     let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
+    let wrapper = document.createDocumentFragment();
+    let clone = node.cloneNode( true );
+    let iTag = document.createElement('i');
 
-//     if( parentElement.tagName === 'I' ) return true;
+    while( clone.firstChild ) {
+        wrapper.appendChild( clone.firstChild );
+    }
 
-//     while( parentElement.parentNode ) {
-        
-//         if( parentElement.parentNode.tagName === 'I' ) return true; 
-//         if( parentElement.parentNode.tagName === 'DIV' ) return false;
+    iTag.appendChild( wrapper );
 
-//         parentElement = parentElement.parentNode
+    return iTag
 
-//     }
-
-//     return false;
-
-// }
+}
