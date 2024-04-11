@@ -5,9 +5,9 @@ export function multiLineCreatingItag ( props ) {
     console.log('여러줄 이탤릭체 생성');
     let { 
             range, selection, selectedContent, startNode, startNodeParent, startOffset,
-            endNode, endNodeParent, startRangeNode, endRangeNode
+            endNode, startRangeNode, endRangeNode
         } = props;
-    console.log('2]startNode: ', startNode );
+    
     let newStartNode = range.startContainer;
     let newStartOffset = range.startOffset;
     
@@ -16,94 +16,107 @@ export function multiLineCreatingItag ( props ) {
     let lastIndex = selectedContent.childNodes.length - 1;
     let newRange = document.createRange();
     let selectedAll = ( !startNode.childNodes.length ) ? true : false;
-    
 
-    // if( newStartNode.childNodes.length === 0 ) {
+    if( selectedAll ) {
+        
+        let frag = document.createDocumentFragment();
+        console.log('시작전 selectedContent: ', selectedContent);
 
-    //     // 전체글씨 모두 선택
-    //     let wrapper = document.createDocumentFragment();
+        const childNodes = Array.from( selectedContent.childNodes );
         
-    //     Array.from( selectedContent.childNodes ).filter( node => {
-            
-    //         while( node.firstChild ) {
-    //             let i = document.createElement('i');
-    //             let div = document.createElement('div');
-    //             i.appendChild( node.firstChild );
-    //             div.appendChild( i );
-    //             wrapper.appendChild( div );
-    //         }
-            
-    //     });
+        childNodes.forEach( node => {
+
+            if ( node.nodeType === Node.ELEMENT_NODE && node.tagName === 'DIV' ) {
+                // node가 div인 경우에만 처리
+                const italicElement = document.createElement('i');
+
+                // div 내부의 모든 자식 노드를 <i> 요소로 이동
+                while ( node.firstChild ) {
+                    italicElement.appendChild( node.firstChild );
+                }
+
+                // 원래의 div 내부를 비우고 <i> 요소를 추가
+                node.appendChild(italicElement);
+            }
+        });
+
+        range.insertNode( selectedContent );
         
-    //     textEditorNode.replaceChild( wrapper, textEditorNode.children[0] );
-    //     newRange.setStartBefore( textEditorNode.children[0] );
-    //     newRange.setEndAfter( textEditorNode.children[textEditorNode.children.length-1] );
-    //     selection.removeAllRanges();
-    //     selection.addRange( newRange );
-        
-    // } else {
-        
+    }
+    else {
+
         Array.from( selectedContent.childNodes ).forEach(( node, idx ) => {
-            
+
             if( idx === 0 ) { //추출한 첫 번째 노드
                 console.log(`S: T`);
-                
+
                 let iTag = transInnerNode( node );
-                ( selectedAll ) 
-                    ? newStartNode.appendChild( iTag )
-                    : newStartNode.childNodes[newStartOffset-1].appendChild( iTag );
-                
+                if ( selectedAll ) {
+                    let wrapper = document.createElement('div');
+                    wrapper.appendChild( iTag );
+                    // console.log('newStartNode: ', newStartNode.parentNode.childNodes[1] );
+                    newStartNode.parentNode.childNodes[1].appendChild( iTag );
+                    console.log('iTag: ', iTag );
+                    console.log('iTag parentNode: ', iTag.parentNode );
+                    startRangeNode = iTag.parentNode;
+                    // newStartNode.parentNode.firstChild.appendChild( wrapper );
+
+                    // newStartNode.insertBefore( iTag, newStartNode.firstChild );
+                } else {
+                    newStartNode.childNodes[newStartOffset-1].appendChild( iTag );
                     startRangeNode = iTag
+                }
+
                 newRange.setStartBefore( startRangeNode );
-                
+
             } else {
-                
+
                 if( idx !== lastIndex ) {
                     console.log(`S: M`)
-                    
+
                     let wrapper = document.createElement('div');
                     let convertItag = transInnerNode( node );
-    
+
                     wrapper.appendChild( convertItag );
-                    console.log('newStartNode: ', newStartNode );
+
                     ( selectedAll ) 
                         ? newStartNode.parentNode.appendChild( wrapper )
                         : newStartNode.insertBefore( wrapper, newStartNode.childNodes[(newStartOffset-1)+(idx-1)].nextSibling );
-                    
-    
+
+
                 } else { // 마지막 노드 병합 로직
-                    
+
                     console.log(`S: B`)
                     removeITagsAndPreserveText( node );
-                    
+
                     if ( node.nodeType === Node.ELEMENT_NODE && ( node.nodeName === 'DIV' || node.nodeName === 'P')) {
-                        
+
                         let transItagNode = transInnerNode( node );
                         if( selectedAll ) {
-
-                            console.log('newStartNode: ', newStartNode );
-                            newStartNode.parentNode.appendChild( transItagNode );
+                            let wrapper = document.createElement('div');
+                            wrapper.appendChild( transItagNode );
+                            newStartNode.parentNode.appendChild( wrapper );
+                            endRangeNode = transItagNode;
 
                         } else {
                             let lastLine = newStartNode.childNodes[selectedLastLineIdx-1];
                             let nextElement = lastLine;
-                            
+
                             if( nextElement.firstChild ) nextElement.insertBefore( transItagNode, nextElement.firstChild );
                             endRangeNode = nextElement.children[0];
                         }
 
                     }
-    
+
                 }
-                
+
             }
-    
+
         });
-    
+
         newRange.setEndAfter( endRangeNode );
         selection.removeAllRanges();
         selection.addRange( newRange );
-
-    // }
+    }
 
 }

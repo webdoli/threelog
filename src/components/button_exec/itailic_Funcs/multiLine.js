@@ -12,7 +12,6 @@ export default function multiLine ( props ) {
         startNodeParent,
         startOffset, 
         endNode, 
-        endNodeParent,
         endOffset 
     } = props;
     let startRangeNode;
@@ -43,7 +42,6 @@ export default function multiLine ( props ) {
                 startNodeParent,
                 startOffset,
                 endNode,
-                endNodeParent,
                 endOffset,
                 range, 
                 selection, 

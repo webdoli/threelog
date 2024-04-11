@@ -34,7 +34,7 @@ export function checkParentNode ( element ) {
 }
 
 export function checkParentNodeDiv ( element ) {
-    
+    console.log('Func「checkParentNodeDiv」 element: ', element )
     if( element.nodeName === 'DIV' ) {
         let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
         while( parentElement.parentNode ) {
@@ -294,7 +294,7 @@ export function removeITagsAndPreserveText( parentNode ) {
 /**********************************/
 // 여러줄일때, 첫번째 노드에 <i>가 있는지 유무 판단
 export function chkMultiLineItalicRemoved ( nodes ) {
-    
+    console.log('FunC:: chkMultiLineItalicRemoved | nodes: ', nodes );
     let allNode = nodes.childNodes;
     let lastLen = allNode.length - 1;
     let lastNodeLen = allNode[lastLen].childNodes.length - 1;
