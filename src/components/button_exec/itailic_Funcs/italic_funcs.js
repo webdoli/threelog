@@ -22,7 +22,7 @@ export function wrapChildrenInSpan( fragmentElement ) {
 //:: 상위에 <div>태그가 나올 때까지 상위 노드를 향해 순회하며, <div>태그가 나오는 바로 아래 노드를 반환 함.
 
 export function checkParentNode ( element ) {
-    console.log('상위 노드검사: ', element );
+    
     let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
     while( parentElement.parentNode ) {
         
@@ -34,7 +34,7 @@ export function checkParentNode ( element ) {
 }
 
 export function checkParentNodeDiv ( element ) {
-    console.log('현재 노드: ', element.nodeName );
+    
     if( element.nodeName === 'DIV' ) {
         let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
         while( parentElement.parentNode ) {
@@ -64,7 +64,7 @@ export function checkParentNodeDiv ( element ) {
 //:: 상위에 <div>태그가 나올 때까지 상위 노드를 향해 순회하며, <i>태그가 나오면 true반환, <i>태그가 없으면 false 반환.
 
 export function checkForItalicInTextNode ( element ) {
-    console.log('상위노드 i검사 element: ', element );
+    
     let parentElement = element.nodeType === Node.TEXT_NODE ? element.parentNode : element;
     
     if( parentElement.tagName === 'I' ) { console.log('i발견'); return true; }
@@ -136,9 +136,6 @@ export function removeITags ( element ) {
 
         if( parent.tagName === 'I' ) {
             const grandParent = parent.parentNode;
-            console.log('parent: ', parent );
-            console.log('grandParent: ', grandParent );
-            console.log('grandParent firstChild: ', grandParent.firstChild );
             while( parent.firstChild ) {
                 grandParent.insertBefore( parent.firstChild, parent );
             }

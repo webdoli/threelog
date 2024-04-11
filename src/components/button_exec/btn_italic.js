@@ -16,13 +16,13 @@ export function toggleItalic () {
     let endNodeParent = checkParentNodeDiv( endNode.parentNode );
     let endOffset = range.endOffset;
 
-    // console.log('startNode: ', startNode );
+    console.log('1]startNode: ', startNode );
     // console.log('endNodeParent: ', endNodeParent );
     
     savedRange = range.cloneRange();
     let selectedText = selection.toString();
     let selectedContent = range.extractContents();
-
+    
     // 추출된 내용 앞뒤의 최상위 부모 노드를 찾음
     let commonAncestor = range.commonAncestorContainer;
     if (commonAncestor.nodeType !== Node.ELEMENT_NODE) {

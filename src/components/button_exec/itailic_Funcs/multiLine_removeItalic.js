@@ -1,113 +1,69 @@
-import { removeEmptyTag,  removeITagsAndPreserveText } from "./italic_funcs.js";
+import { removeITagsAndPreserveText } from "./italic_funcs.js";
 // 순환하며 이탤릭체 모두 삭제
 
 export function multiLineRemovingItag ( props ) {
     console.log('여러줄 이탤릭체 제거 실행');
-    let { selectedContent,
-        startNode,
-        startOffset,
-        startRangeNode,
-        endRangeNode,
-        selection,
-        range
-    } = props;
-
+    let { selectedContent, startRangeNode, endRangeNode, selection, range } = props;
+    
     selectedContent.childNodes.forEach( tag => {
         removeITagsAndPreserveText( tag );
     });
+    console.log('선택부분: ', selectedContent );
+    let newStartNode = range.startContainer;
+    let newStartOffset = range.startOffset;
+    console.log('newStartNode.childNodes.length: ', newStartNode.childNodes.length );
+    let selectedLastLineIdx = newStartOffset + ( selectedContent.childNodes.length - 1);
 
-    let fragment = document.createDocumentFragment();
-    const firstNode = selectedContent.childNodes[0];
+    let lastNodeIdx = newStartNode.children.length - 1;
+    let newEndNode = newStartNode.children[lastNodeIdx];
+    console.log('newStartNode: ', newStartNode );
     let lastIndex = selectedContent.childNodes.length - 1;
-    let newRange;
-    console.log('firstNode: ', firstNode );
-    Array.from( firstNode.childNodes ).forEach( node => {
-    
-        let wrapper = document.createDocumentFragment();
-        let spanNode = document.createElement('span');
-        let clone_ = node.cloneNode(true);
-        console.log('clone_: ', clone_ );
-        let previousElement = startNode.childNodes[startOffset].previousSibling;
-        wrapper.appendChild( clone_ );
-        // tmpNode.appendChild( clone_ );
-        previousElement.appendChild( wrapper );
-        removeEmptyTag( previousElement );
-        previousElement.normalize();
-    
-        startRangeNode = wrapper;
-    
-        // 새 선택범위 생성:시작점
+    let newRange = document.createRange();
 
-        newRange = document.createRange();
-        // 예외처리
-        console.log('startRangeNode.nodeType: ', startRangeNode.nodeType );
-        if( startRangeNode.nodeType !== 11 ) newRange.setStartBefore( startRangeNode );
-        
-    });
-    
-    Array.from( selectedContent.childNodes ).forEach( (node, idx) => {
-    
-        if( idx !== 0 ) {
-    
-            let clone = node.cloneNode( true );
-    
-            if( lastIndex !== idx ) {
-    
-                fragment.appendChild( clone );
-                fragment.normalize();
-    
-            } else {
-    
-                const lastNode = selectedContent.childNodes[lastIndex];
-    
-                if (lastNode.nodeType === Node.ELEMENT_NODE && (lastNode.nodeName === 'DIV' || lastNode.nodeName === 'P')) {
-                    // 마지막 노드 병합 로직
-                    Array.from( lastNode.childNodes ).forEach( node => {
-    
-                        let spanNode = document.createElement('span');
-                        let wrapper = document.createDocumentFragment();
-                        let nextElement = startNode.childNodes[startOffset];
-                        let clone_ = node.cloneNode(true);
-                        wrapper.appendChild( clone_ );
-                        if( nextElement.firstChild ) nextElement.insertBefore( wrapper, nextElement.firstChild );
-                        endRangeNode = wrapper;
-                        removeEmptyTag( nextElement );
-                        nextElement.normalize();
-    
-                        // 새 범위 생성: 마지막지점
-                        if( startRangeNode.nodeType !== 11 ) {
-                            newRange.setEndAfter( endRangeNode );
-                            selection.removeAllRanges();
-                            selection.addRange( newRange );
-                        }
-                        
-                        
-                    })
-    
-                }
-    
-                range.collapse(false); // 범위를 끝점으로 이동
-    
+    Array.from( selectedContent.childNodes ).forEach( ( node, idx ) => {
+
+        if( idx === 0 ) {
+            console.log(`R: T`);
+
+            let nodeRangeOffset = node.childNodes.length - 1;
+
+            while( node.firstChild ) {
+                newStartNode.childNodes[newStartOffset-1].appendChild( node.firstChild );
             }
-        } 
-    
-    });
-    
-    // 첫줄, 마지막줄 span노드 제거
-    startNode.insertBefore( fragment, startNode.childNodes[startOffset]);
-    
-    console.log('이탤릭 제거')
-    console.log('startRangeNode: ', startRangeNode );
-    console.log('endRangeNode: ', endRangeNode );
-    
-    // let newRange = document.createRange();
-    // newRange.setStartBefore( startRangeNode );
-    // newRange.setEndAfter( endRangeNode );
-    // selection.removeAllRanges();
-    // selection.addRange( newRange );
-    
-    // removeSpanNode( endRangeNode );
-    
-    // range.insertNode( selectedContent );
+            
+            let startNodeLen = newStartNode.childNodes[newStartOffset-1].childNodes.length-1;
+            
+            startRangeNode = newStartNode.childNodes[newStartOffset-1].childNodes[ startNodeLen - nodeRangeOffset ];
+            newRange.setStartBefore( startRangeNode );
+
+        } else {
+
+            if( idx !== lastIndex ) {
+
+                console.log(`R: M`);
+                newStartNode.insertBefore( node, newStartNode.childNodes[(newStartOffset-1)+(idx-1)].nextSibling );
+
+            } else {
+                console.log(`R: B`);
+                let clone_ = node.cloneNode(true);
+                let node_len = clone_.childNodes.length - 1;
+                let lastLine = newStartNode.childNodes[selectedLastLineIdx-1];
+
+                while( node.firstChild ) {
+                    lastLine.insertBefore( node.lastChild, lastLine.firstChild );
+                }
+
+                endRangeNode = lastLine.childNodes[node_len];
+                
+            }
+
+        }
+
+    })
+
+    newRange.setEndAfter( endRangeNode );   
+    newStartNode.normalize();
+    selection.removeAllRanges();
+    selection.addRange( newRange );
 
 }

@@ -27,6 +27,7 @@ export default function multiLine ( props ) {
                 selectedContent,
                 startNode,
                 startOffset,
+                startNodeParent,
                 endNode,
                 endOffset,
                 startRangeNode,
