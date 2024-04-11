@@ -15,7 +15,10 @@ export function multiLineCreatingItag ( props ) {
     let textEditorNode = newStartNode.parentNode;
     let lastIndex = selectedContent.childNodes.length - 1;
     let newRange = document.createRange();
-    let selectedAll = ( !startNode.childNodes.length ) ? true : false;
+    console.log('startNode len: ', startNode.childNodes.length );
+    console.log('newStartNode len: ', newStartNode.childNodes.length );
+    console.log('startNode: ', startNode );
+    let selectedAll = ( !newStartNode.childNodes.length ) ? true : false;
 
     if( selectedAll ) {
         

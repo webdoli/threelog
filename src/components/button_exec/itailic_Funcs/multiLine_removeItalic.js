@@ -11,12 +11,16 @@ export function multiLineRemovingItag ( props ) {
     
     let newStartNode = range.startContainer;
     let newStartOffset = range.startOffset;
-    console.log('newStartNode.childNodes.length: ', newStartNode.childNodes.length );
+    
     let selectedLastLineIdx = newStartOffset + ( selectedContent.childNodes.length - 1);
 
     let lastNodeIdx = newStartNode.children.length - 1;
     let newEndNode = newStartNode.children[lastNodeIdx];
+
+    console.log('startNode len: ', startNode.childNodes.length );
+    console.log('startNode: ', startNode );
     console.log('newStartNode: ', newStartNode );
+    console.log('newStartNode.childNodes.length: ', newStartNode.childNodes.length );
     let lastIndex = selectedContent.childNodes.length - 1;
     let newRange = document.createRange();
     let selectedAll = ( !startNode.childNodes.length ) ? true : false;
