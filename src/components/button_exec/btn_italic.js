@@ -11,6 +11,8 @@ export function toggleItalic () {
     let startNode = range.startContainer;
     let startNodeParent = range.startContainer.parentNode;
     let startOffset = range.startOffset;
+    console.log('startNode: ', startNode );
+    console.log('startOffset: ', startOffset );
     
     let endNode = range.endContainer;
     let endOffset = range.endOffset;
@@ -24,7 +26,7 @@ export function toggleItalic () {
     if (commonAncestor.nodeType !== Node.ELEMENT_NODE) {
         commonAncestor = commonAncestor.parentNode;
     }
-
+    console.log('commonAncestor: ', commonAncestor)
     removeEmptyTags(commonAncestor);
     // console.log('조상노드: ', commonAncestor );
 

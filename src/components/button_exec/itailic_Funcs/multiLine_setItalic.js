@@ -16,13 +16,10 @@ export function multiLineCreatingItag ( props ) {
     let newRange = document.createRange();
     let selectedAll = ( !newStartNode.childNodes.length ) ? true : false;
 
-    console.log('startNode: ', startNode );
-    console.log('endNode: ', endNode );
-
     let frontNull = (startNode.textContent === "" ) ? true : false;
     let backNull = (endNode.textContent === "" ) ? true : false;
 
-    
+    console.log()
 
     if( selectedAll ) {
         
@@ -66,7 +63,15 @@ export function multiLineCreatingItag ( props ) {
                 } else {
 
                     if( frontNull ) {
-
+                        
+                        console.log('frontNull 실행');
+                        console.log('iTag: ', iTag );
+                        console.log('newStartNode startOffset: ', newStartNode[newStartOffset] );
+                        let div = document.createElement('div');
+                        div.appendChild( iTag );
+                        
+                        // let targetNode = newStartNode.childNodes[newStartOffset-1];
+                        // targetNode.parentNode.insertBefore( div, targetNode );
 
 
                     } else {
