@@ -12,19 +12,20 @@ export function multiLineCreatingItag ( props ) {
     let newStartOffset = range.startOffset;
     
     let selectedLastLineIdx = newStartOffset + ( selectedContent.childNodes.length - 1);
-    let textEditorNode = newStartNode.parentNode;
     let lastIndex = selectedContent.childNodes.length - 1;
     let newRange = document.createRange();
-    console.log('startNode len: ', startNode.childNodes.length );
-    console.log('newStartNode len: ', newStartNode.childNodes.length );
-    console.log('startNode: ', startNode );
     let selectedAll = ( !newStartNode.childNodes.length ) ? true : false;
+
+    console.log('startNode: ', startNode );
+    console.log('endNode: ', endNode );
+
+    let frontNull = (startNode.textContent === "" ) ? true : false;
+    let backNull = (endNode.textContent === "" ) ? true : false;
+
+    
 
     if( selectedAll ) {
         
-        let frag = document.createDocumentFragment();
-        console.log('시작전 selectedContent: ', selectedContent);
-
         const childNodes = Array.from( selectedContent.childNodes );
         
         childNodes.forEach( node => {
@@ -54,20 +55,27 @@ export function multiLineCreatingItag ( props ) {
                 console.log(`S: T`);
 
                 let iTag = transInnerNode( node );
+                
                 if ( selectedAll ) {
+
                     let wrapper = document.createElement('div');
                     wrapper.appendChild( iTag );
-                    // console.log('newStartNode: ', newStartNode.parentNode.childNodes[1] );
                     newStartNode.parentNode.childNodes[1].appendChild( iTag );
-                    console.log('iTag: ', iTag );
-                    console.log('iTag parentNode: ', iTag.parentNode );
                     startRangeNode = iTag.parentNode;
-                    // newStartNode.parentNode.firstChild.appendChild( wrapper );
 
-                    // newStartNode.insertBefore( iTag, newStartNode.firstChild );
                 } else {
-                    newStartNode.childNodes[newStartOffset-1].appendChild( iTag );
-                    startRangeNode = iTag
+
+                    if( frontNull ) {
+
+
+
+                    } else {
+
+                        newStartNode.childNodes[newStartOffset-1].appendChild( iTag );
+                        startRangeNode = iTag;
+
+                    }
+
                 }
 
                 newRange.setStartBefore( startRangeNode );
@@ -89,12 +97,14 @@ export function multiLineCreatingItag ( props ) {
 
                 } else { // 마지막 노드 병합 로직
 
-                    console.log(`S: B`)
+                    console.log(`S: B`);
+                    
                     removeITagsAndPreserveText( node );
 
                     if ( node.nodeType === Node.ELEMENT_NODE && ( node.nodeName === 'DIV' || node.nodeName === 'P')) {
 
                         let transItagNode = transInnerNode( node );
+
                         if( selectedAll ) {
                             let wrapper = document.createElement('div');
                             wrapper.appendChild( transItagNode );
@@ -102,11 +112,34 @@ export function multiLineCreatingItag ( props ) {
                             endRangeNode = transItagNode;
 
                         } else {
-                            let lastLine = newStartNode.childNodes[selectedLastLineIdx-1];
-                            let nextElement = lastLine;
 
-                            if( nextElement.firstChild ) nextElement.insertBefore( transItagNode, nextElement.firstChild );
-                            endRangeNode = nextElement.children[0];
+                            let lastLine = newStartNode.childNodes[selectedLastLineIdx-1];
+                            
+
+                            if( backNull ) {
+
+                                let div = document.createElement('div');
+                                div.appendChild( transItagNode );
+
+                                if( lastLine === undefined ) {
+                                    lastLine = newStartNode.childNodes[selectedLastLineIdx-2];
+                                    lastLine.parentNode.appendChild( div );
+                                    let divLastLen = div.childNodes.length - 1;
+                                    endRangeNode = div.childNodes[ divLastLen ];
+
+                                } else {
+                                    lastLine.parentNode.insertBefore( div, lastLine );
+                                    endRangeNode = lastLine.previousSibling.children[0];
+                                }
+            
+
+                            } else {
+
+                                if( lastLine.firstChild ) lastLine.insertBefore( transItagNode, lastLine.firstChild );
+                                endRangeNode = lastLine.children[0];
+                            
+                            }
+                            
                         }
 
                     }

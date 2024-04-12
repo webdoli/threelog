@@ -13,16 +13,11 @@ export function toggleItalic () {
     let startOffset = range.startOffset;
     
     let endNode = range.endContainer;
-    // let endNodeParent = checkParentNodeDiv( endNode.parentNode );
     let endOffset = range.endOffset;
-
-    console.log('s]startNode: ', startNode );
-    // console.log('endNodeParent: ', endNodeParent );
     
     savedRange = range.cloneRange();
     let selectedText = selection.toString();
     let selectedContent = range.extractContents();
-    console.log('s]selectedContent: ', selectedContent );
     
     // 추출된 내용 앞뒤의 최상위 부모 노드를 찾음
     let commonAncestor = range.commonAncestorContainer;

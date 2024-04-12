@@ -3,8 +3,8 @@ import { removeITagsAndPreserveText } from "./italic_funcs.js";
 
 export function multiLineRemovingItag ( props ) {
     console.log('여러줄 이탤릭체 제거 실행');
-    let { selectedContent, startRangeNode, endRangeNode, selection, range, startNode } = props;
-    console.log('제거 selectedConent: ', selectedContent );
+    let { selectedContent, startRangeNode, endRangeNode, selection, endNode, range, startNode } = props;
+    
     selectedContent.childNodes.forEach( tag => {
         removeITagsAndPreserveText( tag );
     });
@@ -17,17 +17,23 @@ export function multiLineRemovingItag ( props ) {
     let lastNodeIdx = newStartNode.children.length - 1;
     let newEndNode = newStartNode.children[lastNodeIdx];
 
-    console.log('startNode len: ', startNode.childNodes.length );
-    console.log('startNode: ', startNode );
-    console.log('newStartNode: ', newStartNode );
-    console.log('newStartNode.childNodes.length: ', newStartNode.childNodes.length );
     let lastIndex = selectedContent.childNodes.length - 1;
     let newRange = document.createRange();
     let selectedAll = ( !startNode.childNodes.length ) ? true : false;
 
+    console.log('newStartNode: ', newStartNode );
+    console.log('selectedContent: ', selectedContent.childNodes[0].textContent );
+    console.log('startNode: ', startNode );
+    console.log('endNode: ', endNode );
+
+    let frontNull = (startNode.textContent === "" ) ? true : false;
+    let backNull = (endNode.textContent === "" ) ? true : false;
+
+    console.log('frontNull: ', frontNull );
+    console.log('backNull: ', backNull );
+
     if( selectedAll ) {
 
-        console.log('selectedContent: ', selectedContent );
         let frag = document.createDocumentFragment();
 
         while( selectedContent.firstChild ) {
@@ -37,9 +43,9 @@ export function multiLineRemovingItag ( props ) {
         range.insertNode( frag );
 
     } else {
-
+        
         Array.from( selectedContent.childNodes ).forEach( ( node, idx ) => {
-
+            
             if( idx === 0 ) {
                 console.log(`R: T`);
     
@@ -63,15 +69,43 @@ export function multiLineRemovingItag ( props ) {
     
                 } else {
                     console.log(`R: B`);
+                    
                     let clone_ = node.cloneNode(true);
                     let node_len = clone_.childNodes.length - 1;
                     let lastLine = newStartNode.childNodes[selectedLastLineIdx-1];
-    
-                    while( node.firstChild ) {
-                        lastLine.insertBefore( node.lastChild, lastLine.firstChild );
+
+                    if( backNull ) {
+
+                        let div = document.createElement('div');
+
+                        while( node.firstChild ) {
+                            div.appendChild( node.firstChild );
+                        }
+                        
+                        if( lastLine === undefined ) {
+
+                            lastLine = newStartNode.childNodes[selectedLastLineIdx-2];
+                            lastLine.parentNode.appendChild( div );
+                            let divLastLen = div.childNodes.length - 1;
+                            endRangeNode = div.childNodes[ divLastLen ];
+                            
+                        } else {
+
+                            lastLine.parentNode.insertBefore( div, lastLine );
+                            let divLen = div.childNodes.length - 1;
+                            endRangeNode = div.childNodes[divLen];
+
+                        }
+                        
+
+                    } else {
+
+                        while( node.firstChild ) {
+                            lastLine.insertBefore( node.lastChild, lastLine.firstChild );
+                        }
+                        endRangeNode = lastLine.childNodes[node_len];
+
                     }
-    
-                    endRangeNode = lastLine.childNodes[node_len];
                     
                 }
     
@@ -85,7 +119,5 @@ export function multiLineRemovingItag ( props ) {
         selection.addRange( newRange );
 
     }
-
-    
 
 }
