@@ -1,67 +1,12 @@
 import ITextButton from "./i_ctrl_text_button.js";
 
-function styleTextNodesInRange( range ) {
-    const startContainer = range.startContainer;
-    const endContainer = range.endContainer;
-    const startOffset = range.startOffset;
-    const endOffset = range.endOffset;
-
-    const walker = document.createTreeWalker(
-        range.commonAncestorContainer,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-
-    let node, nodes = [];
-    while ((node = walker.nextNode())) {
-        nodes.push(node);
-    }
-
-    nodes.forEach(node => {
-        if (range.intersectsNode(node)) {
-            let textRange = document.createRange();
-            textRange.selectNode(node);
-
-            if (node === startContainer) {
-                textRange.setStart(node, startOffset);
-            }
-            if (node === endContainer) {
-                textRange.setEnd(node, endOffset);
-            }
-
-            wrapTextWithSpan(textRange);
-        }
-    });
-}
-
-function wrapTextWithSpan(textRange) {
-    const span = document.createElement("span");
-    span.style.fontStyle = "italic";
-    const contents = textRange.extractContents();
-    span.appendChild(contents);
-    textRange.insertNode(span);
-}
-
-
 class Text_Button_Italic extends ITextButton {
     
     constructor() {
 
         super();
-
         this.originalRange = null;
         this.cloneNodes = null;
-        this.extractNodes = null;
-        this.startRangeNode = null;
-        this.endRangeNode = null;
-        this.startContainer = null;
-        this.startNode = null;
-        this.endContainer = null;
-        this.endNode = null;
-        this.startOffset = null;
-        this.endOffset = null;
-        this.chkItalic = null;
         this.chkMultiLineValue = null;
 
     }
@@ -79,7 +24,6 @@ class Text_Button_Italic extends ITextButton {
             
             this.clone();
             this.chkMultiLine();
-            // this.chkItalicInNodes();
             
         }
 
@@ -88,82 +32,195 @@ class Text_Button_Italic extends ITextButton {
     execute(){
         
         this.init();
-        console.log(`
-/*----------------------------------------------------------*/
-            this.cloneNodes.length: ${ this.cloneNodes.childNodes.length },
-            this.startContainer: ${ this.startContainer },
-            this.startOffset: ${ this.startOffset },
-            this.endContainer: ${ this.endContainer },
-            this.endOffset: ${ this.endOffset },
-            this.chkMultiLineValue: ${ this.chkMultiLineValue },
-/*----------------------------------------------------------*/
-        `);
+
+        if( this.chkMultiLineValue ) {
+            // 멀티라인
+            console.log('멀티 라인');
+            ( this.isItalicApplied( this.range ) ) 
+                ? this.removeItalicStyleFromRange(this.range) 
+                : this.styleTextNodesInRange(this.range );
+
+        } else {
+            // 단일라인
+            console.log('단일 라인');
+            ( this.isItalicApplied( this.range ) ) 
+                ? this.removeItalicStyleFromRange(this.range) 
+                : this.styleTextNodesInRange_s(this.range );
+        }
         
-        
-        // this.removeRange();
-        console.log('this.startContainer: ', this.startContainer );
-        console.log('this.startOffset: ', this.startOffset );
-        console.log('this.endContainer: ', this.endContainer );
-        console.log('this.endOffset: ', this.endOffset );
-        console.log('this.selection: ', this.selection );
-        styleTextNodesInRange( this.range );
         this.selection.removeAllRanges();
         this.selection.addRange( this.originalRange );
-        // this.removeRange();
 
-        // let revCloneNodes = Array.from( this.cloneNodes.cloneNode(true).childNodes ).reverse();
-        // console.log('revCloneNodes: ', revCloneNodes );
+    }
 
-        // revCloneNodes.forEach( node => {
-            
-        //     while( node.firstChild ) {
-        //         let div = document.createElement('div');
-        //         let i = document.createElement('i');
-        //         i.appendChild( node.firstChild );
-        //         div.appendChild( i );
-        //         this.range.insertNode( div );
-        //     }
-            
-        // });
+    // 싱글라인
+    styleTextNodesInRange_s(range) {
+        console.log('단일라인 함수 시작');
+        let currentNode = range.startContainer;
+    
+        if (currentNode.nodeType !== Node.TEXT_NODE) {
+            let child = currentNode.firstChild;
+            while (child && child.nodeType !== Node.TEXT_NODE) {
+                child = child.nextSibling;
+            }
+            currentNode = child; // 첫 번째 텍스트 노드로 설정
+        }
+    
+        if (!currentNode) {
+            console.log("No text nodes found in the selection.");
+            return;
+        }
+    
+        const walker = document.createTreeWalker(
+            range.commonAncestorContainer,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+    
+        walker.currentNode = currentNode;
+    
+        let node = walker.currentNode; // 시작 노드 설정
+        let nodes = [];
+        do {
+            if (node && range.intersectsNode(node)) {
+                nodes.push(node);
+            }
+        } while ((node = walker.nextNode()) && node !== range.endContainer.nextSibling);
+    
+        console.log('nodes:', nodes);
+    
+        nodes.forEach(node => {
+            let textRange = document.createRange();
+            textRange.selectNodeContents(node);
+    
+            if (node === range.startContainer) {
+                textRange.setStart(node, range.startOffset);
+            }
+            if (node === range.endContainer) {
+                textRange.setEnd(node, range.endOffset);
+            }
+    
+            this.wrapTextWithSpan_s(textRange);
+        });
+    }
+    
 
-        // console.log('cloneNodes: ', this.cloneNodes );
+    wrapTextWithSpan_s( textRange ) {
 
+        const span = document.createElement("span");
+        span.style.fontStyle = "italic";
+        span.classList.add("italic"); // 이탤릭체를 적용하는 <span>에 클래스 추가
+        const contents = textRange.extractContents();
+        for( let i = 0; i < contents.childNodes.length; i++ ) {
+            console.log(contents.childNodes[i] );
+        }
+        span.appendChild(contents);
+        textRange.insertNode(span);
+
+    }
+
+    styleTextNodesInRange( range ) {
+        const startContainer = range.startContainer;
+        const endContainer = range.endContainer;
+        const startOffset = range.startOffset;
+        const endOffset = range.endOffset;
+
+        const walker = document.createTreeWalker(
+            range.commonAncestorContainer,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        let node, nodes = [];
+        while ((node = walker.nextNode())) {
+            nodes.push(node);
+        }
+
+        nodes.forEach(node => {
+            if (range.intersectsNode(node)) {
+                let textRange = document.createRange();
+                textRange.selectNode(node);
+
+                if (node === startContainer) {
+                    textRange.setStart(node, startOffset);
+                }
+                if (node === endContainer) {
+                    textRange.setEnd(node, endOffset);
+                }
+
+                this.wrapTextWithSpan( textRange );
+            }
+        });
+    }
+
+    wrapTextWithSpan( textRange ) {
+        const span = document.createElement("span");
+        span.style.fontStyle = "italic";
+        span.classList.add("italic"); // 이탤릭체를 적용하는 <span>에 클래스 추가
+        const contents = textRange.extractContents();
+        span.appendChild(contents);
+        textRange.insertNode(span);
+    }
+
+    removeItalicStyleFromRange( range ) {
+
+        const walker = document.createTreeWalker(
+            range.commonAncestorContainer,
+            NodeFilter.SHOW_ELEMENT,
+            {
+                acceptNode: function(node) {
+                    return node.tagName === "SPAN" && node.style.fontStyle === "italic"
+                        ? NodeFilter.FILTER_ACCEPT
+                        : NodeFilter.FILTER_SKIP;
+                }
+            },
+            false
+        );
+    
+        const spans = [];
+        let node;
+        while ((node = walker.nextNode())) spans.push(node);
+    
+        // 역순으로 처리하여 DOM 변경시 이슈 방지
+        for (let i = spans.length - 1; i >= 0; i--) {
+            this.unwrapSpanFromText( spans[i] );
+        }
+    }
+
+    unwrapSpanFromText( node ) {
+
+        if (node.tagName === "SPAN" && node.classList.contains("italic")) {
+            const parent = node.parentNode;
+            while (node.firstChild) {
+                parent.insertBefore(node.firstChild, node);
+            }
+            parent.removeChild(node);
+        }
+
+    }
+
+    isItalicApplied ( range ) {
         
+        const walker = document.createTreeWalker(
+            range.commonAncestorContainer,
+            NodeFilter.SHOW_ELEMENT,
+            {
+                acceptNode: function(node) {
+                    return node.tagName === "SPAN" && node.style.fontStyle === "italic"
+                        ? NodeFilter.FILTER_ACCEPT
+                        : NodeFilter.FILTER_SKIP;
+                }
+            },
+            false
+        );
+    
+        return walker.nextNode() !== null; // 하나라도 이탤릭 적용된 span이 있으면 true 반환
         
-        // ( this.chkItalic ) ? this.removeItalic() : this.setItalic;
-
     }
 
-    setItalic() {
-        // 싱글라인 적용
-        if( this.chkMultiLineValue ) this.setMultiItalic();
-            
 
-    }
-
-    setMultiItalic() {
-        // 멀티라인 적용
-
-    }
-
-    removeItalic() {
-
-        if( this.chkMultiLineValue ) this.removeMultiItalic();
-        // 싱글라인 제거
-
-    }
-
-    removeMultiItalic() {
-        // 멀티라인 제거
-
-    }
-
-    // <i>태그 판별:하위,자식 포함
-    chkItalicInNodes() {
-        
-        ( chkFuncItalic() ) ? this.chkItalic = true : this.chkItalic = false;
-
-    }
 
     // 멀티라인, 싱글라인 체크
     chkMultiLine() {
@@ -176,119 +233,10 @@ class Text_Button_Italic extends ITextButton {
 
     }
 
-    getStartContainer() {
-
-        if( this.startContainer ) return this.startContainer;
-    
-    }
-
-    getEndContainer() {
-
-        if( this.endContainer ) return this.endContainer;
-
-    }
-
-    getStartOffset() {
-
-        if( this.startOffset ) return this.startOffset;
-    
-    }
-
-    getEndOffset() {
-
-        if( this.endOffset ) return this.endOffset;
-
-    }
-
-    resetRange() {
-        
-        this.range = document.createRange();
-    }
-
-    getRange() {
-        if( this.range ) return this.range;
-    }
-
     clone() {
 
         if ( this.range ) this.cloneNodes = this.range.cloneContents();
     
-    }
-
-    extract() {
-
-        if( this.range ) {
-            
-            this.extractNodes = this.range.extractContents();
-            return this.extractNodes;
-        
-        }
-
-    }
-
-    removeRange() {
-
-        if( this.range ) {
-            this.range.deleteContents();
-        }
-
-    }
-
-    insert( node ) {
-
-        if( this.range ) {
-            this.range.insertNode( node )
-            return this.range
-        }
-    }
-
-    initRange() {
-
-        if( this.selection ) this.selection.removeAllRanges();
-
-    }
-
-    addRange() {
-
-        if( this.selection && this.range ) this.selection.addRange( this.range );
-
-    }
-
-    resetRange() {
-
-        if ( this.range ) this.range = document.createRange() 
-    
-    }
-
-    setStartRange( startNode ) {
-
-        if( this.range ) this.range.setStartBefore( startNode );
-        this.startRangeNode = startNode;
-        return this.startRangeNode
-
-    }
-
-    setEndRange( endNode ) {
-
-        if( this.range ) this.range.setEndAfter( endNode );
-        this.endRangeNode = endNode;
-        return this.endRangeNode
-
-    }
-
-    setRange() {
-
-        if( this.startRangeNode && this.endRangeNode ) {
-
-            if( this.selection && this.range ) {
-                
-                this.selection.removeAllRanges();
-                this.selection.addRange( this.range )
-
-            }
-        
-        }
-
     }
 
 }
