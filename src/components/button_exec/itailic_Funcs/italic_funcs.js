@@ -307,7 +307,17 @@ export function chkMultiLineItalicRemoved ( nodes ) {
 
         if( firstNode.nodeType === Node.ELEMENT_NODE && lastNode.nodeType === Node.ELEMENT_NODE )  { startEndItalic = true; }
         if( startEndItalic ) {
-            if( firstNode.querySelectorAll('i') !== null && lastNode.querySelectorAll('i') !== null ) removeItalic = true;
+            console.log('firstNode: ', firstNode );
+            console.log('firstNode: ', firstNode.querySelectorAll('i').length );
+
+            if( firstNode.querySelectorAll('i').length > 0 && lastNode.querySelectorAll('i').length > 0 ) {
+                console.log('시발');
+                removeItalic = true;
+            }
+            if( firstNode.nodeName === 'I' && lastNode.nodeName === 'I' ) {
+                console.log('시발2');
+                removeItalic = true;
+            }
         } 
 
         if( startEndItalic && removeItalic ) {
@@ -316,7 +326,7 @@ export function chkMultiLineItalicRemoved ( nodes ) {
                 // 중간값 계산
                 if( idx !== 0 && idx !== lastLen ) {
                     // 텍스트 노드가 하나라도 나오면 아웃 removeItalic = false
-                    // console.log('중간 연산 node: ', node );
+                    console.log('중간 연산 node: ', node );
                     for( let i=0; i < node.childNodes.length; i++ ) {
 
                         if( removeItalic ) {
@@ -346,7 +356,7 @@ export function chkMultiLineItalicRemoved ( nodes ) {
         }
     }
     
-    // console.log('최종 removeItalic: ', removeItalic )
+    console.log('최종 removeItalic: ', removeItalic )
     return removeItalic
 
 }

@@ -5,6 +5,8 @@
  */
 import { makeTextBold } from "./components/button_exec/btn_bold.js"; // 글씨체 굵게 만드는 버튼 모듈
 import { toggleItalic } from "./components/button_exec/btn_italic.js";
+import Controller_mogl from "./components/controller_mogl.js";
+import Text_Button_Italic from "./components/i_button/text_button_italic.js";
 import { makeImgs } from "./components/button_exec/btn_img.js"; // 이미지 업로드 버튼 모듈
 import { wrapTextNodesInPTags, convert_to_P_Tag, encodeHtml } from "./components/hook.js";
 import { wrapTextWithTag } from "./components/button_exec/btn_title.js";
@@ -12,6 +14,7 @@ import { wrapTextWithTag } from "./components/button_exec/btn_title.js";
 window.addEventListener('DOMContentLoaded', e => {
   
   const form = document.getElementById('text-editor');
+  let moglCtrl = new Controller_mogl();
 
   const defaultButtonProps = {
     insert: false,
@@ -83,7 +86,10 @@ window.addEventListener('DOMContentLoaded', e => {
 
       if (buttonValue === 'i' && htmlTags === 'True') {
         
-        toggleItalic(); // '이탤릭체' 버튼 클릭 시 함수 호출
+        // toggleItalic(); // '이탤릭체' 버튼 클릭 시 함수 호출
+        let textItalicBtn = new Text_Button_Italic();
+        moglCtrl.setCtrl( textItalicBtn );
+        moglCtrl.execute();
         updateHtmlOutput();
       }
 

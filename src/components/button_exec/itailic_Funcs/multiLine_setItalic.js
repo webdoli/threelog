@@ -4,10 +4,11 @@ import { removeITagsAndPreserveText, transInnerNode, removeEmptyNodes } from "./
 export function multiLineCreatingItag ( props ) {
     console.log('여러줄 이탤릭체 생성');
     let { 
-            range, selection, selectedContent, startNode, startNodeParent, startOffset,
+            range, selection, selectedContent, startNode, previousNode, startOffset,
             endNode, startRangeNode, endRangeNode
         } = props;
     
+    startRangeNode = null;
     let newStartNode = range.startContainer;
     let newStartOffset = range.startOffset;
     
@@ -18,6 +19,16 @@ export function multiLineCreatingItag ( props ) {
 
     let frontNull = (startNode.textContent === "" ) ? true : false;
     let backNull = (endNode.textContent === "" ) ? true : false;
+    let selectedIncludedTag;
+
+    // console.log('startNode.childNodes.length: ', startNode.childNodes.length );
+    // console.log('startNode.textContent: ', startNode.textContent );
+    // console.log('frontNull: ', frontNull );
+    // console.log('backNull: ', backNull );
+    // console.log('startNode: ', startNode );
+    // console.log('endNode: ', endNode );
+    // console.log('newStartNode: ', newStartNode );
+
 
     console.log()
 
@@ -47,12 +58,16 @@ export function multiLineCreatingItag ( props ) {
     else {
 
         Array.from( selectedContent.childNodes ).forEach(( node, idx ) => {
+            
+            let nodeLen = node.childNodes.length;
+            
 
             if( idx === 0 ) { //추출한 첫 번째 노드
                 console.log(`S: T`);
-
+                // console.log('node: ', node );
                 let iTag = transInnerNode( node );
-                
+                selectedIncludedTag = ( nodeLen < 2 ) ? false : true;
+                // console.log('selectedIncludedTag: ', selectedIncludedTag );
                 if ( selectedAll ) {
 
                     let wrapper = document.createElement('div');
@@ -61,18 +76,30 @@ export function multiLineCreatingItag ( props ) {
                     startRangeNode = iTag.parentNode;
 
                 } else {
-
-                    if( frontNull ) {
+                    
+                    if( frontNull && !selectedIncludedTag ) {
                         
-                        console.log('frontNull 실행');
-                        console.log('iTag: ', iTag );
-                        console.log('newStartNode startOffset: ', newStartNode[newStartOffset] );
+                        // console.log('frontNull && selectedIncludedTag 실행');
+
                         let div = document.createElement('div');
                         div.appendChild( iTag );
+                        range.insertNode( div );
                         
-                        // let targetNode = newStartNode.childNodes[newStartOffset-1];
-                        // targetNode.parentNode.insertBefore( div, targetNode );
+                        if( !startRangeNode ) {
+                            startRangeNode = iTag;
+                        }                        
 
+                    } else if( frontNull && selectedIncludedTag ){
+
+                        // console.log('frontNull && !selectedIncludedTag 실행');
+
+                        let div = document.createElement('div');
+                        div.appendChild( iTag );
+                        range.insertNode( div );
+                        
+                        if( !startRangeNode ) {
+                            startRangeNode = iTag;
+                        }
 
                     } else {
 
@@ -117,31 +144,70 @@ export function multiLineCreatingItag ( props ) {
                             endRangeNode = transItagNode;
 
                         } else {
-
+                            
                             let lastLine = newStartNode.childNodes[selectedLastLineIdx-1];
                             
 
                             if( backNull ) {
-
+                                // console.log('개시발1')
                                 let div = document.createElement('div');
                                 div.appendChild( transItagNode );
-
+                                // console.log('lastLine: ', lastLine );
                                 if( lastLine === undefined ) {
+                                    
                                     lastLine = newStartNode.childNodes[selectedLastLineIdx-2];
                                     lastLine.parentNode.appendChild( div );
                                     let divLastLen = div.childNodes.length - 1;
                                     endRangeNode = div.childNodes[ divLastLen ];
 
+                                } else if( frontNull && selectedIncludedTag ){
+                                    // console.log('개좆시발');
+                                    // console.log('transItagNode: ', transItagNode );
+                                    // console.log('개시발 lastLine: ', lastLine );
+                                    
+                                    if( frontNull ) {
+                                        // console.log('아좆시발');
+                                        lastLine = newStartNode.childNodes[selectedLastLineIdx];
+                                        // console.log('lastLine: ', lastLine );
+                                        lastLine.parentNode.insertBefore( div, lastLine );
+                                        endRangeNode = lastLine.previousSibling.children[0];
+                                    
+                                    } else {
+                                        // console.log('야이시발아')
+                                        lastLine.insertBefore( transItagNode, lastLine.firstChild );
+                                        endRangeNode = lastLine.children[0];
+                                    }
+
+                                } else if( frontNull && !selectedIncludedTag){
+
+                                    // console.log('좆까!');
+                                    lastLine.insertBefore( transItagNode, lastLine.firstChild );
+                                    endRangeNode = lastLine.children[0];
+
+
                                 } else {
+                                    // console.log('좆시발2')
                                     lastLine.parentNode.insertBefore( div, lastLine );
                                     endRangeNode = lastLine.previousSibling.children[0];
                                 }
             
 
                             } else {
+                                
+                                if( frontNull || selectedIncludedTag ) {
 
-                                if( lastLine.firstChild ) lastLine.insertBefore( transItagNode, lastLine.firstChild );
-                                endRangeNode = lastLine.children[0];
+                                    lastLine = newStartNode.childNodes[selectedLastLineIdx];
+                                    
+                                    if( lastLine.firstChild ) lastLine.insertBefore( transItagNode, lastLine.firstChild );
+                                    endRangeNode = lastLine.children[0];
+                                    // console.log('endRangeNode: ', endRangeNode );
+
+                                } else {
+
+                                    if( lastLine.firstChild ) lastLine.insertBefore( transItagNode, lastLine.firstChild );
+                                    endRangeNode = lastLine.children[0];
+
+                                }
                             
                             }
                             

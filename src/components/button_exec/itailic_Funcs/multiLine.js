@@ -10,14 +10,17 @@ export default function multiLine ( props ) {
         selection, 
         startNode, 
         startNodeParent,
-        startOffset, 
+        startOffset,
+        cloneContents,
+        previousNode,
         endNode, 
         endOffset 
     } = props;
     let startRangeNode;
     let endRangeNode;
-
-    let chkMulti_ItalicRemove = chkMultiLineItalicRemoved( selectedContent );
+    console.log('selectedContent: ', selectedContent );
+    console.log('cloneContents: ', cloneContents );
+    let chkMulti_ItalicRemove = chkMultiLineItalicRemoved( cloneContents );
         // 마지막 부분 이텔릭인지 확인
         if( chkMulti_ItalicRemove ) {
             // 순환하며 이탤릭체 제거
@@ -27,6 +30,7 @@ export default function multiLine ( props ) {
                 startNode,
                 startOffset,
                 startNodeParent,
+                previousNode,
                 endNode,
                 endOffset,
                 startRangeNode,
@@ -37,6 +41,7 @@ export default function multiLine ( props ) {
         } else {
             // 순환하며 이탤릭체 씌우기
             multiLineCreatingItag( {
+                previousNode,
                 selectedContent,
                 startNode,
                 startNodeParent,
